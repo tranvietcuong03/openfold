@@ -19,20 +19,20 @@ import torch
 import torch.nn as nn
 from typing import Tuple, Optional
 
-from openfold.utils import all_atom_multimer
-from openfold.utils.feats import (
-    pseudo_beta_fn,
-    dgram_from_positions,
-    build_template_angle_feat,
-    build_template_pair_feat,
-)
+# from openfold.utils import all_atom_multimer
+# from openfold.utils.feats import (
+#     pseudo_beta_fn,
+#     dgram_from_positions,
+#     build_template_angle_feat,
+#     build_template_pair_feat,
+# )
 from openfold.model.primitives import Linear, LayerNorm
-from openfold.model.template import (
-    TemplatePairStack,
-    TemplatePointwiseAttention,
-)
-from openfold.utils import geometry
-from openfold.utils.tensor_utils import add, one_hot, tensor_tree_map, dict_multimap
+# from openfold.model.template import (
+#     TemplatePairStack,
+#     TemplatePointwiseAttention,
+# )
+# from openfold.utils import geometry
+from openfold.utils.tensor_utils import add #, one_hot, tensor_tree_map, dict_multimap
 
 
 class InputEmbedder(nn.Module):
