@@ -29,9 +29,9 @@ from openfold.np.residue_constants import (
     restype_atom14_mask,
     restype_atom14_rigid_group_positions,
 )
-from openfold.utils.geometry.quat_rigid import QuatRigid
+# from openfold.utils.geometry.quat_rigid import QuatRigid
 from openfold.utils.geometry.rigid_matrix_vector import Rigid3Array
-from openfold.utils.geometry.vector import Vec3Array, square_euclidean_distance
+# from openfold.utils.geometry.vector import Vec3Array, square_euclidean_distance
 from openfold.utils.feats import (
     frames_and_literature_positions_to_atom14_pos,
     torsion_angles_to_frames,
@@ -510,227 +510,227 @@ class InvariantPointAttention(nn.Module):
 #TODO: This module follows the refactoring done in IPA for multimer. Running the regular IPA above
 # in multimer mode should be equivalent, but tests do not pass unless using this version. Determine
 # whether or not the increase in test error matters in practice.
-class InvariantPointAttentionMultimer(nn.Module):
-    """
-    Implements Algorithm 22.
-    """
-    def __init__(
-        self,
-        c_s: int,
-        c_z: int,
-        c_hidden: int,
-        no_heads: int,
-        no_qk_points: int,
-        no_v_points: int,
-        inf: float = 1e5,
-        eps: float = 1e-8,
-        is_multimer: bool = True,
-    ):
-        """
-        Args:
-            c_s:
-                Single representation channel dimension
-            c_z:
-                Pair representation channel dimension
-            c_hidden:
-                Hidden channel dimension
-            no_heads:
-                Number of attention heads
-            no_qk_points:
-                Number of query/key points to generate
-            no_v_points:
-                Number of value points to generate
-        """
-        super(InvariantPointAttentionMultimer, self).__init__()
+# class InvariantPointAttentionMultimer(nn.Module):
+#     """
+#     Implements Algorithm 22.
+#     """
+#     def __init__(
+#         self,
+#         c_s: int,
+#         c_z: int,
+#         c_hidden: int,
+#         no_heads: int,
+#         no_qk_points: int,
+#         no_v_points: int,
+#         inf: float = 1e5,
+#         eps: float = 1e-8,
+#         is_multimer: bool = True,
+#     ):
+#         """
+#         Args:
+#             c_s:
+#                 Single representation channel dimension
+#             c_z:
+#                 Pair representation channel dimension
+#             c_hidden:
+#                 Hidden channel dimension
+#             no_heads:
+#                 Number of attention heads
+#             no_qk_points:
+#                 Number of query/key points to generate
+#             no_v_points:
+#                 Number of value points to generate
+#         """
+#         super(InvariantPointAttentionMultimer, self).__init__()
 
-        self.c_s = c_s
-        self.c_z = c_z
-        self.c_hidden = c_hidden
-        self.no_heads = no_heads
-        self.no_qk_points = no_qk_points
-        self.no_v_points = no_v_points
-        self.inf = inf
-        self.eps = eps
+#         self.c_s = c_s
+#         self.c_z = c_z
+#         self.c_hidden = c_hidden
+#         self.no_heads = no_heads
+#         self.no_qk_points = no_qk_points
+#         self.no_v_points = no_v_points
+#         self.inf = inf
+#         self.eps = eps
 
-        # These linear layers differ from their specifications in the
-        # supplement. There, they lack bias and use Glorot initialization.
-        # Here as in the official source, they have bias and use the default
-        # Lecun initialization.
-        hc = self.c_hidden * self.no_heads
-        self.linear_q = Linear(self.c_s, hc, bias=False)
+#         # These linear layers differ from their specifications in the
+#         # supplement. There, they lack bias and use Glorot initialization.
+#         # Here as in the official source, they have bias and use the default
+#         # Lecun initialization.
+#         hc = self.c_hidden * self.no_heads
+#         self.linear_q = Linear(self.c_s, hc, bias=False)
 
-        self.linear_q_points = PointProjection(
-            self.c_s,
-            self.no_qk_points,
-            self.no_heads,
-            is_multimer=True
-        )
+#         self.linear_q_points = PointProjection(
+#             self.c_s,
+#             self.no_qk_points,
+#             self.no_heads,
+#             is_multimer=True
+#         )
 
-        self.linear_k = Linear(self.c_s, hc, bias=False)
-        self.linear_v = Linear(self.c_s, hc, bias=False)
-        self.linear_k_points = PointProjection(
-            self.c_s,
-            self.no_qk_points,
-            self.no_heads,
-            is_multimer=True
-        )
+#         self.linear_k = Linear(self.c_s, hc, bias=False)
+#         self.linear_v = Linear(self.c_s, hc, bias=False)
+#         self.linear_k_points = PointProjection(
+#             self.c_s,
+#             self.no_qk_points,
+#             self.no_heads,
+#             is_multimer=True
+#         )
 
-        self.linear_v_points = PointProjection(
-            self.c_s,
-            self.no_v_points,
-            self.no_heads,
-            is_multimer=True
-        )
+#         self.linear_v_points = PointProjection(
+#             self.c_s,
+#             self.no_v_points,
+#             self.no_heads,
+#             is_multimer=True
+#         )
 
-        self.linear_b = Linear(self.c_z, self.no_heads)
+#         self.linear_b = Linear(self.c_z, self.no_heads)
 
-        self.head_weights = nn.Parameter(torch.zeros((no_heads)))
-        ipa_point_weights_init_(self.head_weights)
+#         self.head_weights = nn.Parameter(torch.zeros((no_heads)))
+#         ipa_point_weights_init_(self.head_weights)
 
-        concat_out_dim = self.no_heads * (
-            self.c_z + self.c_hidden + self.no_v_points * 4
-        )
-        self.linear_out = Linear(concat_out_dim, self.c_s, init="final")
+#         concat_out_dim = self.no_heads * (
+#             self.c_z + self.c_hidden + self.no_v_points * 4
+#         )
+#         self.linear_out = Linear(concat_out_dim, self.c_s, init="final")
 
-        self.softmax = nn.Softmax(dim=-2)
+#         self.softmax = nn.Softmax(dim=-2)
 
-    def forward(
-        self,
-        s: torch.Tensor,
-        z: Optional[torch.Tensor],
-        r: Union[Rigid, Rigid3Array],
-        mask: torch.Tensor,
-        inplace_safe: bool = False,
-        _offload_inference: bool = False,
-        _z_reference_list: Optional[Sequence[torch.Tensor]] = None,
-    ) -> torch.Tensor:
-        """
-        Args:
-            s:
-                [*, N_res, C_s] single representation
-            z:
-                [*, N_res, N_res, C_z] pair representation
-            r:
-                [*, N_res] transformation object
-            mask:
-                [*, N_res] mask
-        Returns:
-            [*, N_res, C_s] single representation update
-        """
-        if(_offload_inference and inplace_safe):
-            z = _z_reference_list
-        else:
-            z = [z]
+#     def forward(
+#         self,
+#         s: torch.Tensor,
+#         z: Optional[torch.Tensor],
+#         r: Union[Rigid, Rigid3Array],
+#         mask: torch.Tensor,
+#         inplace_safe: bool = False,
+#         _offload_inference: bool = False,
+#         _z_reference_list: Optional[Sequence[torch.Tensor]] = None,
+#     ) -> torch.Tensor:
+#         """
+#         Args:
+#             s:
+#                 [*, N_res, C_s] single representation
+#             z:
+#                 [*, N_res, N_res, C_z] pair representation
+#             r:
+#                 [*, N_res] transformation object
+#             mask:
+#                 [*, N_res] mask
+#         Returns:
+#             [*, N_res, C_s] single representation update
+#         """
+#         if(_offload_inference and inplace_safe):
+#             z = _z_reference_list
+#         else:
+#             z = [z]
 
-        a = 0.
+#         a = 0.
 
-        point_variance = (max(self.no_qk_points, 1) * 9.0 / 2)
-        point_weights = math.sqrt(1.0 / point_variance)
+#         point_variance = (max(self.no_qk_points, 1) * 9.0 / 2)
+#         point_weights = math.sqrt(1.0 / point_variance)
 
-        softplus = lambda x: torch.logaddexp(x, torch.zeros_like(x))
+#         softplus = lambda x: torch.logaddexp(x, torch.zeros_like(x))
 
-        head_weights = softplus(self.head_weights)
-        point_weights = point_weights * head_weights
+#         head_weights = softplus(self.head_weights)
+#         point_weights = point_weights * head_weights
 
-        #######################################
-        # Generate scalar and point activations
-        #######################################
+#         #######################################
+#         # Generate scalar and point activations
+#         #######################################
 
-        # [*, N_res, H, P_qk]
-        q_pts = Vec3Array.from_array(self.linear_q_points(s, r))
+#         # [*, N_res, H, P_qk]
+#         q_pts = Vec3Array.from_array(self.linear_q_points(s, r))
 
-        # [*, N_res, H, P_qk, 3]
-        k_pts = Vec3Array.from_array(self.linear_k_points(s, r))
+#         # [*, N_res, H, P_qk, 3]
+#         k_pts = Vec3Array.from_array(self.linear_k_points(s, r))
 
-        pt_att = square_euclidean_distance(q_pts.unsqueeze(-3), k_pts.unsqueeze(-4), epsilon=0.)
-        pt_att = torch.sum(pt_att * point_weights[..., None], dim=-1) * (-0.5)
-        pt_att = pt_att.to(dtype=s.dtype)
-        a = a + pt_att
+#         pt_att = square_euclidean_distance(q_pts.unsqueeze(-3), k_pts.unsqueeze(-4), epsilon=0.)
+#         pt_att = torch.sum(pt_att * point_weights[..., None], dim=-1) * (-0.5)
+#         pt_att = pt_att.to(dtype=s.dtype)
+#         a = a + pt_att
 
-        scalar_variance = max(self.c_hidden, 1) * 1.
-        scalar_weights = math.sqrt(1.0 / scalar_variance)
+#         scalar_variance = max(self.c_hidden, 1) * 1.
+#         scalar_weights = math.sqrt(1.0 / scalar_variance)
 
-        # [*, N_res, H * C_hidden]
-        q = self.linear_q(s)
-        k = self.linear_k(s)
+#         # [*, N_res, H * C_hidden]
+#         q = self.linear_q(s)
+#         k = self.linear_k(s)
 
-        # [*, N_res, H, C_hidden]
-        q = q.view(q.shape[:-1] + (self.no_heads, -1))
-        k = k.view(k.shape[:-1] + (self.no_heads, -1))
+#         # [*, N_res, H, C_hidden]
+#         q = q.view(q.shape[:-1] + (self.no_heads, -1))
+#         k = k.view(k.shape[:-1] + (self.no_heads, -1))
 
-        q = q * scalar_weights
-        a = a + torch.einsum('...qhc,...khc->...qkh', q, k)
+#         q = q * scalar_weights
+#         a = a + torch.einsum('...qhc,...khc->...qkh', q, k)
 
-        ##########################
-        # Compute attention scores
-        ##########################
-        # [*, N_res, N_res, H]
-        b = self.linear_b(z[0])
+#         ##########################
+#         # Compute attention scores
+#         ##########################
+#         # [*, N_res, N_res, H]
+#         b = self.linear_b(z[0])
 
-        if (_offload_inference):
-            assert (sys.getrefcount(z[0]) == 2)
-            z[0] = z[0].cpu()
+#         if (_offload_inference):
+#             assert (sys.getrefcount(z[0]) == 2)
+#             z[0] = z[0].cpu()
 
-        a = a + b
+#         a = a + b
 
-        # [*, N_res, N_res]
-        square_mask = mask.unsqueeze(-1) * mask.unsqueeze(-2)
-        square_mask = self.inf * (square_mask - 1)
+#         # [*, N_res, N_res]
+#         square_mask = mask.unsqueeze(-1) * mask.unsqueeze(-2)
+#         square_mask = self.inf * (square_mask - 1)
 
-        a = a + square_mask.unsqueeze(-1)
-        a = a * math.sqrt(1. / 3)  # Normalize by number of logit terms (3)
-        a = self.softmax(a)
+#         a = a + square_mask.unsqueeze(-1)
+#         a = a * math.sqrt(1. / 3)  # Normalize by number of logit terms (3)
+#         a = self.softmax(a)
 
-        # [*, N_res, H * C_hidden]
-        v = self.linear_v(s)
+#         # [*, N_res, H * C_hidden]
+#         v = self.linear_v(s)
 
-        # [*, N_res, H, C_hidden]
-        v = v.view(v.shape[:-1] + (self.no_heads, -1))
+#         # [*, N_res, H, C_hidden]
+#         v = v.view(v.shape[:-1] + (self.no_heads, -1))
 
-        o = torch.einsum('...qkh, ...khc->...qhc', a, v)
+#         o = torch.einsum('...qkh, ...khc->...qhc', a, v)
 
-        # [*, N_res, H * C_hidden]
-        o = flatten_final_dims(o, 2)
+#         # [*, N_res, H * C_hidden]
+#         o = flatten_final_dims(o, 2)
 
-        # [*, N_res, H, P_v, 3]
-        v_pts = Vec3Array.from_array(self.linear_v_points(s, r))
+#         # [*, N_res, H, P_v, 3]
+#         v_pts = Vec3Array.from_array(self.linear_v_points(s, r))
 
-        # [*, N_res, H, P_v]
-        o_pt = v_pts[..., None, :, :, :] * a.unsqueeze(-1)
-        o_pt = o_pt.sum(dim=-3)
-        # o_pt = Vec3Array(
-        #     torch.sum(a.unsqueeze(-1) * v_pts[..., None, :, :, :].x, dim=-3),
-        #     torch.sum(a.unsqueeze(-1) * v_pts[..., None, :, :, :].y, dim=-3),
-        #     torch.sum(a.unsqueeze(-1) * v_pts[..., None, :, :, :].z, dim=-3),
-        # )
+#         # [*, N_res, H, P_v]
+#         o_pt = v_pts[..., None, :, :, :] * a.unsqueeze(-1)
+#         o_pt = o_pt.sum(dim=-3)
+#         # o_pt = Vec3Array(
+#         #     torch.sum(a.unsqueeze(-1) * v_pts[..., None, :, :, :].x, dim=-3),
+#         #     torch.sum(a.unsqueeze(-1) * v_pts[..., None, :, :, :].y, dim=-3),
+#         #     torch.sum(a.unsqueeze(-1) * v_pts[..., None, :, :, :].z, dim=-3),
+#         # )
 
-        # [*, N_res, H * P_v, 3]
-        o_pt = o_pt.reshape(o_pt.shape[:-2] + (-1,))
+#         # [*, N_res, H * P_v, 3]
+#         o_pt = o_pt.reshape(o_pt.shape[:-2] + (-1,))
 
-        # [*, N_res, H, P_v]
-        o_pt = r[..., None].apply_inverse_to_point(o_pt)
-        o_pt_flat = [o_pt.x, o_pt.y, o_pt.z]
-        o_pt_flat = [x.to(dtype=a.dtype) for x in o_pt_flat]
+#         # [*, N_res, H, P_v]
+#         o_pt = r[..., None].apply_inverse_to_point(o_pt)
+#         o_pt_flat = [o_pt.x, o_pt.y, o_pt.z]
+#         o_pt_flat = [x.to(dtype=a.dtype) for x in o_pt_flat]
 
-        # [*, N_res, H * P_v]
-        o_pt_norm = o_pt.norm(epsilon=1e-8)
+#         # [*, N_res, H * P_v]
+#         o_pt_norm = o_pt.norm(epsilon=1e-8)
 
-        if (_offload_inference):
-            z[0] = z[0].to(o_pt.x.device)
+#         if (_offload_inference):
+#             z[0] = z[0].to(o_pt.x.device)
 
-        o_pair = torch.einsum('...ijh, ...ijc->...ihc', a, z[0].to(dtype=a.dtype))
+#         o_pair = torch.einsum('...ijh, ...ijc->...ihc', a, z[0].to(dtype=a.dtype))
 
-        # [*, N_res, H * C_z]
-        o_pair = flatten_final_dims(o_pair, 2)
+#         # [*, N_res, H * C_z]
+#         o_pair = flatten_final_dims(o_pair, 2)
 
-        # [*, N_res, C_s]
-        s = self.linear_out(
-            torch.cat(
-                (o, *o_pt_flat, o_pt_norm, o_pair), dim=-1
-            ).to(dtype=z[0].dtype)
-        )
+#         # [*, N_res, C_s]
+#         s = self.linear_out(
+#             torch.cat(
+#                 (o, *o_pt_flat, o_pt_norm, o_pair), dim=-1
+#             ).to(dtype=z[0].dtype)
+#         )
 
-        return s
+#         return s
 
 
 class BackboneUpdate(nn.Module):
@@ -899,8 +899,20 @@ class StructureModule(nn.Module):
 
         self.linear_in = Linear(self.c_s, self.c_s)
 
-        ipa = InvariantPointAttention if not self.is_multimer else InvariantPointAttentionMultimer
-        self.ipa = ipa(
+        # ipa = InvariantPointAttention if not self.is_multimer else InvariantPointAttentionMultimer
+        # self.ipa = ipa(
+        #     self.c_s,
+        #     self.c_z,
+        #     self.c_ipa,
+        #     self.no_heads_ipa,
+        #     self.no_qk_points,
+        #     self.no_v_points,
+        #     inf=self.inf,
+        #     eps=self.epsilon,
+        #     is_multimer=self.is_multimer,
+        # )
+
+        self.ipa = InvariantPointAttention(
             self.c_s,
             self.c_z,
             self.c_ipa,
@@ -921,10 +933,10 @@ class StructureModule(nn.Module):
             self.dropout_rate,
         )
 
-        if self.is_multimer:
-            self.bb_update = QuatRigid(self.c_s, full_quat=False)
-        else:
-            self.bb_update = BackboneUpdate(self.c_s)
+        # if self.is_multimer:
+        #     self.bb_update = QuatRigid(self.c_s, full_quat=False)
+        # else:
+        self.bb_update = BackboneUpdate(self.c_s)
 
         self.angle_resnet = AngleResnet(
             self.c_s,
@@ -934,7 +946,8 @@ class StructureModule(nn.Module):
             self.epsilon,
         )
 
-    def _forward_monomer(
+    # def _forward_monomer(
+    def forward(
         self,
         evoformer_output_dict,
         aatype,
@@ -1063,128 +1076,128 @@ class StructureModule(nn.Module):
 
         return outputs
 
-    def _forward_multimer(
-            self,
-            evoformer_output_dict,
-            aatype,
-            mask=None,
-            inplace_safe=False,
-            _offload_inference=False,
-    ):
-        s = evoformer_output_dict["single"]
+    # def _forward_multimer(
+    #         self,
+    #         evoformer_output_dict,
+    #         aatype,
+    #         mask=None,
+    #         inplace_safe=False,
+    #         _offload_inference=False,
+    # ):
+    #     s = evoformer_output_dict["single"]
 
-        if mask is None:
-            # [*, N]
-            mask = s.new_ones(s.shape[:-1])
+    #     if mask is None:
+    #         # [*, N]
+    #         mask = s.new_ones(s.shape[:-1])
 
-        # [*, N, C_s]
-        s = self.layer_norm_s(s)
+    #     # [*, N, C_s]
+    #     s = self.layer_norm_s(s)
 
-        # [*, N, N, C_z]
-        z = self.layer_norm_z(evoformer_output_dict["pair"])
+    #     # [*, N, N, C_z]
+    #     z = self.layer_norm_z(evoformer_output_dict["pair"])
 
-        z_reference_list = None
-        if (_offload_inference):
-            assert (sys.getrefcount(evoformer_output_dict["pair"]) == 2)
-            evoformer_output_dict["pair"] = evoformer_output_dict["pair"].cpu()
-            z_reference_list = [z]
-            z = None
+    #     z_reference_list = None
+    #     if (_offload_inference):
+    #         assert (sys.getrefcount(evoformer_output_dict["pair"]) == 2)
+    #         evoformer_output_dict["pair"] = evoformer_output_dict["pair"].cpu()
+    #         z_reference_list = [z]
+    #         z = None
 
-        # [*, N, C_s]
-        s_initial = s
-        s = self.linear_in(s)
+    #     # [*, N, C_s]
+    #     s_initial = s
+    #     s = self.linear_in(s)
 
-        # [*, N]
-        rigids = Rigid3Array.identity(
-            s.shape[:-1], 
-            s.device, 
-        )
-        outputs = []
-        for i in range(self.no_blocks):
-            # [*, N, C_s]
-            s = s + self.ipa(
-                s,
-                z,
-                rigids,
-                mask,
-                inplace_safe=inplace_safe,
-                _offload_inference=_offload_inference,
-                _z_reference_list=z_reference_list
-            )
-            s = self.ipa_dropout(s)
-            s = self.layer_norm_ipa(s)
-            s = self.transition(s)
+    #     # [*, N]
+    #     rigids = Rigid3Array.identity(
+    #         s.shape[:-1], 
+    #         s.device, 
+    #     )
+    #     outputs = []
+    #     for i in range(self.no_blocks):
+    #         # [*, N, C_s]
+    #         s = s + self.ipa(
+    #             s,
+    #             z,
+    #             rigids,
+    #             mask,
+    #             inplace_safe=inplace_safe,
+    #             _offload_inference=_offload_inference,
+    #             _z_reference_list=z_reference_list
+    #         )
+    #         s = self.ipa_dropout(s)
+    #         s = self.layer_norm_ipa(s)
+    #         s = self.transition(s)
 
-            # [*, N]
-            rigids = rigids @ self.bb_update(s)
+    #         # [*, N]
+    #         rigids = rigids @ self.bb_update(s)
 
-            # [*, N, 7, 2]
-            unnormalized_angles, angles = self.angle_resnet(s, s_initial)
+    #         # [*, N, 7, 2]
+    #         unnormalized_angles, angles = self.angle_resnet(s, s_initial)
 
-            all_frames_to_global = self.torsion_angles_to_frames(
-                rigids.scale_translation(self.trans_scale_factor),
-                angles,
-                aatype,
-            )
+    #         all_frames_to_global = self.torsion_angles_to_frames(
+    #             rigids.scale_translation(self.trans_scale_factor),
+    #             angles,
+    #             aatype,
+    #         )
 
-            pred_xyz = self.frames_and_literature_positions_to_atom14_pos(
-                all_frames_to_global,
-                aatype,
-            )
+    #         pred_xyz = self.frames_and_literature_positions_to_atom14_pos(
+    #             all_frames_to_global,
+    #             aatype,
+    #         )
             
-            preds = {
-                "frames": rigids.scale_translation(self.trans_scale_factor).to_tensor(),
-                "sidechain_frames": all_frames_to_global.to_tensor_4x4(),
-                "unnormalized_angles": unnormalized_angles,
-                "angles": angles,
-                "positions": pred_xyz,
-            }
+    #         preds = {
+    #             "frames": rigids.scale_translation(self.trans_scale_factor).to_tensor(),
+    #             "sidechain_frames": all_frames_to_global.to_tensor_4x4(),
+    #             "unnormalized_angles": unnormalized_angles,
+    #             "angles": angles,
+    #             "positions": pred_xyz,
+    #         }
 
-            preds = {k: v.to(dtype=s.dtype) for k, v in preds.items()}
+    #         preds = {k: v.to(dtype=s.dtype) for k, v in preds.items()}
 
-            outputs.append(preds)
+    #         outputs.append(preds)
 
-            rigids = rigids.stop_rot_gradient()
+    #         rigids = rigids.stop_rot_gradient()
 
-        del z, z_reference_list
+    #     del z, z_reference_list
 
-        if (_offload_inference):
-            evoformer_output_dict["pair"] = (
-                evoformer_output_dict["pair"].to(s.device)
-            )
+    #     if (_offload_inference):
+    #         evoformer_output_dict["pair"] = (
+    #             evoformer_output_dict["pair"].to(s.device)
+    #         )
 
-        outputs = dict_multimap(torch.stack, outputs)
-        outputs["single"] = s
+    #     outputs = dict_multimap(torch.stack, outputs)
+    #     outputs["single"] = s
 
-        return outputs
+    #     return outputs
 
-    def forward(
-        self,
-        evoformer_output_dict,
-        aatype,
-        mask=None,
-        inplace_safe=False,
-        _offload_inference=False,
-    ):
-        """
-        Args:
-            s:
-                [*, N_res, C_s] single representation
-            z:
-                [*, N_res, N_res, C_z] pair representation
-            aatype:
-                [*, N_res] amino acid indices
-            mask:
-                Optional [*, N_res] sequence mask
-        Returns:
-            A dictionary of outputs
-        """
-        if(self.is_multimer):
-            outputs = self._forward_multimer(evoformer_output_dict, aatype, mask, inplace_safe, _offload_inference)
-        else:
-            outputs = self._forward_monomer(evoformer_output_dict, aatype, mask, inplace_safe, _offload_inference)
+    # def forward(
+    #     self,
+    #     evoformer_output_dict,
+    #     aatype,
+    #     mask=None,
+    #     inplace_safe=False,
+    #     _offload_inference=False,
+    # ):
+    #     """
+    #     Args:
+    #         s:
+    #             [*, N_res, C_s] single representation
+    #         z:
+    #             [*, N_res, N_res, C_z] pair representation
+    #         aatype:
+    #             [*, N_res] amino acid indices
+    #         mask:
+    #             Optional [*, N_res] sequence mask
+    #     Returns:
+    #         A dictionary of outputs
+    #     """
+    #     if(self.is_multimer):
+    #         outputs = self._forward_multimer(evoformer_output_dict, aatype, mask, inplace_safe, _offload_inference)
+    #     else:
+    #         outputs = self._forward_monomer(evoformer_output_dict, aatype, mask, inplace_safe, _offload_inference)
 
-        return outputs
+    #     return outputs
 
     def _init_residue_constants(self, float_dtype, device):
         if not hasattr(self, "default_frames"):
