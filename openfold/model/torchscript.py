@@ -17,35 +17,35 @@ from typing import Optional, Sequence, Tuple
 import torch
 import torch.nn as nn
 
-from openfold.model.dropout import (
-    DropoutRowwise,
-    DropoutColumnwise,
-)
+# from openfold.model.dropout import (
+#     DropoutRowwise,
+#     DropoutColumnwise,
+# )
 from openfold.model.evoformer import (
     EvoformerBlock,
-    EvoformerStack,
+    # EvoformerStack,
 )
 from openfold.model.outer_product_mean import OuterProductMean
 from openfold.model.msa import (
     MSARowAttentionWithPairBias, 
-    MSAColumnAttention,
-    MSAColumnGlobalAttention,
+    MSAColumnAttention
+    # MSAColumnGlobalAttention,
 )
-from openfold.model.pair_transition import PairTransition
+# from openfold.model.pair_transition import PairTransition
 from openfold.model.primitives import Attention, GlobalAttention
-from openfold.model.structure_module import (
-    InvariantPointAttention,
-    BackboneUpdate,
-)
-from openfold.model.template import TemplatePairStackBlock
-from openfold.model.triangular_attention import (
-    TriangleAttentionStartingNode,
-    TriangleAttentionEndingNode,
-)
-from openfold.model.triangular_multiplicative_update import (
-    TriangleMultiplicationOutgoing,
-    TriangleMultiplicationIncoming,
-)
+# from openfold.model.structure_module import (
+#     InvariantPointAttention,
+#     BackboneUpdate,
+# )
+# from openfold.model.template import TemplatePairStackBlock
+# from openfold.model.triangular_attention import (
+#     TriangleAttentionStartingNode,
+#     TriangleAttentionEndingNode,
+# )
+# from openfold.model.triangular_multiplicative_update import (
+#     TriangleMultiplicationOutgoing,
+#     TriangleMultiplicationIncoming,
+# )
 
 
 def script_preset_(model: torch.nn.Module):
