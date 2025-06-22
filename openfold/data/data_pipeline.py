@@ -937,16 +937,18 @@ class DataPipeline:
         mmcif_feats = make_mmcif_features(mmcif, chain_id)
 
         input_sequence = mmcif.chain_to_seqres[chain_id]
-        hits = self._parse_template_hit_files(
-            alignment_dir=alignment_dir,
-            input_sequence=input_sequence,
-            alignment_index=alignment_index)
+        # hits = self._parse_template_hit_files(
+        #     alignment_dir=alignment_dir,
+        #     input_sequence=input_sequence,
+        #     alignment_index=alignment_index)
 
-        template_features = make_template_features(
-            input_sequence,
-            hits,
-            self.template_featurizer
-        )
+        # template_features = make_template_features(
+        #     input_sequence,
+        #     hits,
+        #     self.template_featurizer
+        # )
+
+        template_features = {}
 
         sequence_embedding_features = {}
         # If using seqemb mode, generate a dummy MSA features using just the sequence
