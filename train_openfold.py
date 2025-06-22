@@ -17,7 +17,7 @@ import wandb
 from deepspeed.utils import zero_to_fp32 
 
 from openfold.config import model_config
-from openfold.data.data_modules import OpenFoldDataModule, OpenFoldMultimerDataModule
+from openfold.data.data_modules import OpenFoldDataModule #, OpenFoldMultimerDataModule
 from openfold.model.model import AlphaFold
 from openfold.model.torchscript import script_preset_
 from openfold.np import residue_constants
@@ -339,18 +339,18 @@ def main(args):
     if (args.script_modules):
         script_preset_(model_module)
 
-    if "multimer" in args.config_preset:
-        data_module = OpenFoldMultimerDataModule(
-            config=config.data,
-            batch_seed=args.seed,
-            **vars(args)
-        )
-    else:
-        data_module = OpenFoldDataModule(
-            config=config.data,
-            batch_seed=args.seed,
-            **vars(args)
-        )
+    # if "multimer" in args.config_preset:
+    #     data_module = OpenFoldMultimerDataModule(
+    #         config=config.data,
+    #         batch_seed=args.seed,
+    #         **vars(args)
+    #     )
+    # else:
+    data_module = OpenFoldDataModule(
+        config=config.data,
+        batch_seed=args.seed,
+        **vars(args)
+    )
 
     data_module.prepare_data()
     data_module.setup()
