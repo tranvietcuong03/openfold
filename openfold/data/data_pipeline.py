@@ -705,11 +705,11 @@ def pad_msa(np_example, min_num_seq):
 
 class DataPipeline:
     """Assembles input features."""
-    def __init__(
-        self,
-        template_featurizer: Optional[templates.TemplateHitFeaturizer],
-    ):
-        self.template_featurizer = template_featurizer
+    # def __init__(
+    #     self,
+    #     template_featurizer: Optional[templates.TemplateHitFeaturizer],
+    # ):
+    #     self.template_featurizer = template_featurizer
 
     def _parse_msa_data(
         self,
@@ -763,52 +763,52 @@ class DataPipeline:
 
         return msa_data
 
-    def _parse_template_hit_files(
-        self,
-        alignment_dir: str,
-        input_sequence: str,
-        alignment_index: Optional[Any] = None
-    ) -> Mapping[str, Any]:
-        all_hits = {}
-        if(alignment_index is not None):
-            fp = open(os.path.join(alignment_dir, alignment_index["db"]), 'rb')
+    # def _parse_template_hit_files(
+    #     self,
+    #     alignment_dir: str,
+    #     input_sequence: str,
+    #     alignment_index: Optional[Any] = None
+    # ) -> Mapping[str, Any]:
+    #     all_hits = {}
+    #     if(alignment_index is not None):
+    #         fp = open(os.path.join(alignment_dir, alignment_index["db"]), 'rb')
 
-            def read_template(start, size):
-                fp.seek(start)
-                return fp.read(size).decode("utf-8")
+    #         def read_template(start, size):
+    #             fp.seek(start)
+    #             return fp.read(size).decode("utf-8")
 
-            for (name, start, size) in alignment_index["files"]:
-                ext = os.path.splitext(name)[-1]
+    #         for (name, start, size) in alignment_index["files"]:
+    #             ext = os.path.splitext(name)[-1]
 
-                if(ext == ".hhr"):
-                    hits = parsers.parse_hhr(read_template(start, size))
-                    all_hits[name] = hits
-                elif(name == "hmmsearch_output.sto"):
-                    hits = parsers.parse_hmmsearch_sto(
-                        read_template(start, size),
-                        input_sequence,
-                    )
-                    all_hits[name] = hits
+    #             if(ext == ".hhr"):
+    #                 hits = parsers.parse_hhr(read_template(start, size))
+    #                 all_hits[name] = hits
+    #             elif(name == "hmmsearch_output.sto"):
+    #                 hits = parsers.parse_hmmsearch_sto(
+    #                     read_template(start, size),
+    #                     input_sequence,
+    #                 )
+    #                 all_hits[name] = hits
 
-            fp.close()
-        else:
-            for f in os.listdir(alignment_dir):
-                path = os.path.join(alignment_dir, f)
-                ext = os.path.splitext(f)[-1]
+    #         fp.close()
+    #     else:
+    #         for f in os.listdir(alignment_dir):
+    #             path = os.path.join(alignment_dir, f)
+    #             ext = os.path.splitext(f)[-1]
 
-                if(ext == ".hhr"):
-                    with open(path, "r") as fp:
-                        hits = parsers.parse_hhr(fp.read())
-                    all_hits[f] = hits
-                elif(f == "hmm_output.sto"):
-                    with open(path, "r") as fp:
-                        hits = parsers.parse_hmmsearch_sto(
-                            fp.read(),
-                            input_sequence,
-                        )
-                    all_hits[f] = hits
+    #             if(ext == ".hhr"):
+    #                 with open(path, "r") as fp:
+    #                     hits = parsers.parse_hhr(fp.read())
+    #                 all_hits[f] = hits
+    #             elif(f == "hmm_output.sto"):
+    #                 with open(path, "r") as fp:
+    #                     hits = parsers.parse_hmmsearch_sto(
+    #                         fp.read(),
+    #                         input_sequence,
+    #                     )
+    #                 all_hits[f] = hits
 
-        return all_hits
+    #     return all_hits
 
     def _get_msas(self,
         alignment_dir: str,
@@ -846,20 +846,20 @@ class DataPipeline:
         return msa_features
 
     # Load and process sequence embedding features
-    def _process_seqemb_features(self,
-        alignment_dir: str,
-    ) -> Mapping[str, Any]:
-        seqemb_features = {}
-        for f in os.listdir(alignment_dir):
-            path = os.path.join(alignment_dir, f)
-            ext = os.path.splitext(f)[-1]
+    # def _process_seqemb_features(self,
+    #     alignment_dir: str,
+    # ) -> Mapping[str, Any]:
+    #     seqemb_features = {}
+    #     for f in os.listdir(alignment_dir):
+    #         path = os.path.join(alignment_dir, f)
+    #         ext = os.path.splitext(f)[-1]
 
-            if (ext == ".pt"):
-                # Load embedding file
-                seqemb_data = torch.load(path)
-                seqemb_features["seq_embedding"] = seqemb_data["representations"][33]
+    #         if (ext == ".pt"):
+    #             # Load embedding file
+    #             seqemb_data = torch.load(path)
+    #             seqemb_features["seq_embedding"] = seqemb_data["representations"][33]
 
-        return seqemb_features
+    #     return seqemb_features
 
     def process_fasta(
         self,
@@ -960,197 +960,197 @@ class DataPipeline:
 
         return {**mmcif_feats, **template_features, **msa_features, **sequence_embedding_features}
 
-    def process_pdb(
-        self,
-        pdb_path: str,
-        alignment_dir: str,
-        is_distillation: bool = True,
-        chain_id: Optional[str] = None,
-        _structure_index: Optional[str] = None,
-        alignment_index: Optional[Any] = None,
-        seqemb_mode: bool = False,
-    ) -> FeatureDict:
-        """
-            Assembles features for a protein in a PDB file.
-        """
-        if(_structure_index is not None):
-            db_dir = os.path.dirname(pdb_path)
-            db = _structure_index["db"]
-            db_path = os.path.join(db_dir, db)
-            fp = open(db_path, "rb")
-            _, offset, length = _structure_index["files"][0]
-            fp.seek(offset)
-            pdb_str = fp.read(length).decode("utf-8")
-            fp.close()
-        else:
-            with open(pdb_path, 'r') as f:
-                pdb_str = f.read()
+    # def process_pdb(
+    #     self,
+    #     pdb_path: str,
+    #     alignment_dir: str,
+    #     is_distillation: bool = True,
+    #     chain_id: Optional[str] = None,
+    #     _structure_index: Optional[str] = None,
+    #     alignment_index: Optional[Any] = None,
+    #     seqemb_mode: bool = False,
+    # ) -> FeatureDict:
+    #     """
+    #         Assembles features for a protein in a PDB file.
+    #     """
+    #     if(_structure_index is not None):
+    #         db_dir = os.path.dirname(pdb_path)
+    #         db = _structure_index["db"]
+    #         db_path = os.path.join(db_dir, db)
+    #         fp = open(db_path, "rb")
+    #         _, offset, length = _structure_index["files"][0]
+    #         fp.seek(offset)
+    #         pdb_str = fp.read(length).decode("utf-8")
+    #         fp.close()
+    #     else:
+    #         with open(pdb_path, 'r') as f:
+    #             pdb_str = f.read()
 
-        protein_object = protein.from_pdb_string(pdb_str, chain_id)
-        input_sequence = _aatype_to_str_sequence(protein_object.aatype)
-        description = os.path.splitext(os.path.basename(pdb_path))[0].upper()
-        pdb_feats = make_pdb_features(
-            protein_object,
-            description,
-            is_distillation=is_distillation
-        )
+    #     protein_object = protein.from_pdb_string(pdb_str, chain_id)
+    #     input_sequence = _aatype_to_str_sequence(protein_object.aatype)
+    #     description = os.path.splitext(os.path.basename(pdb_path))[0].upper()
+    #     pdb_feats = make_pdb_features(
+    #         protein_object,
+    #         description,
+    #         is_distillation=is_distillation
+    #     )
 
-        hits = self._parse_template_hit_files(
-            alignment_dir=alignment_dir,
-            input_sequence=input_sequence,
-            alignment_index=alignment_index,
-        )
+    #     hits = self._parse_template_hit_files(
+    #         alignment_dir=alignment_dir,
+    #         input_sequence=input_sequence,
+    #         alignment_index=alignment_index,
+    #     )
 
-        template_features = make_template_features(
-            input_sequence,
-            hits,
-            self.template_featurizer,
-        )
+    #     template_features = make_template_features(
+    #         input_sequence,
+    #         hits,
+    #         self.template_featurizer,
+    #     )
 
-        sequence_embedding_features = {}
-        # If in sequence embedding mode, generate dummy MSA features using just the input sequence
-        if seqemb_mode:
-            msa_features = make_dummy_msa_feats(input_sequence)
-            sequence_embedding_features = self._process_seqemb_features(alignment_dir)
-        else:
-            msa_features = self._process_msa_feats(alignment_dir, input_sequence, alignment_index)
+    #     sequence_embedding_features = {}
+    #     # If in sequence embedding mode, generate dummy MSA features using just the input sequence
+    #     if seqemb_mode:
+    #         msa_features = make_dummy_msa_feats(input_sequence)
+    #         sequence_embedding_features = self._process_seqemb_features(alignment_dir)
+    #     else:
+    #         msa_features = self._process_msa_feats(alignment_dir, input_sequence, alignment_index)
 
-        return {**pdb_feats, **template_features, **msa_features, **sequence_embedding_features}
+    #     return {**pdb_feats, **template_features, **msa_features, **sequence_embedding_features}
 
-    def process_core(
-        self,
-        core_path: str,
-        alignment_dir: str,
-        alignment_index: Optional[Any] = None,
-        seqemb_mode: bool = False,
-    ) -> FeatureDict:
-        """
-            Assembles features for a protein in a ProteinNet .core file.
-        """
-        with open(core_path, 'r') as f:
-            core_str = f.read()
+    # def process_core(
+    #     self,
+    #     core_path: str,
+    #     alignment_dir: str,
+    #     alignment_index: Optional[Any] = None,
+    #     seqemb_mode: bool = False,
+    # ) -> FeatureDict:
+    #     """
+    #         Assembles features for a protein in a ProteinNet .core file.
+    #     """
+    #     with open(core_path, 'r') as f:
+    #         core_str = f.read()
 
-        protein_object = protein.from_proteinnet_string(core_str)
-        input_sequence = _aatype_to_str_sequence(protein_object.aatype)
-        description = os.path.splitext(os.path.basename(core_path))[0].upper()
-        core_feats = make_protein_features(protein_object, description)
+    #     protein_object = protein.from_proteinnet_string(core_str)
+    #     input_sequence = _aatype_to_str_sequence(protein_object.aatype)
+    #     description = os.path.splitext(os.path.basename(core_path))[0].upper()
+    #     core_feats = make_protein_features(protein_object, description)
 
-        hits = self._parse_template_hit_files(
-            alignment_dir=alignment_dir,
-            input_sequence=input_sequence,
-            alignment_index=alignment_index,
-        )
+    #     hits = self._parse_template_hit_files(
+    #         alignment_dir=alignment_dir,
+    #         input_sequence=input_sequence,
+    #         alignment_index=alignment_index,
+    #     )
 
-        template_features = make_template_features(
-            input_sequence,
-            hits,
-            self.template_featurizer,
-        )
+    #     template_features = make_template_features(
+    #         input_sequence,
+    #         hits,
+    #         self.template_featurizer,
+    #     )
 
-        sequence_embedding_features = {}
-        # If in sequence embedding mode, generate dummy MSA features using just the input sequence
-        if seqemb_mode:
-            msa_features = make_dummy_msa_feats(input_sequence)
-            sequence_embedding_features = self._process_seqemb_features(alignment_dir)
-        else:
-            msa_features = self._process_msa_feats(alignment_dir, input_sequence)
+    #     sequence_embedding_features = {}
+    #     # If in sequence embedding mode, generate dummy MSA features using just the input sequence
+    #     if seqemb_mode:
+    #         msa_features = make_dummy_msa_feats(input_sequence)
+    #         sequence_embedding_features = self._process_seqemb_features(alignment_dir)
+    #     else:
+    #         msa_features = self._process_msa_feats(alignment_dir, input_sequence)
 
-        return {**core_feats, **template_features, **msa_features, **sequence_embedding_features}
+    #     return {**core_feats, **template_features, **msa_features, **sequence_embedding_features}
 
-    def process_multiseq_fasta(self,
-                               fasta_path: str,
-                               super_alignment_dir: str,
-                               ri_gap: int = 200,
-                               ) -> FeatureDict:
-        """
-            Assembles features for a multi-sequence FASTA. Uses Minkyung Baek's
-            hack from Twitter (a.k.a. AlphaFold-Gap).
-        """
-        with open(fasta_path, 'r') as f:
-            fasta_str = f.read()
+    # def process_multiseq_fasta(self,
+    #                            fasta_path: str,
+    #                            super_alignment_dir: str,
+    #                            ri_gap: int = 200,
+    #                            ) -> FeatureDict:
+    #     """
+    #         Assembles features for a multi-sequence FASTA. Uses Minkyung Baek's
+    #         hack from Twitter (a.k.a. AlphaFold-Gap).
+    #     """
+    #     with open(fasta_path, 'r') as f:
+    #         fasta_str = f.read()
 
-        input_seqs, input_descs = parsers.parse_fasta(fasta_str)
+    #     input_seqs, input_descs = parsers.parse_fasta(fasta_str)
 
-        # No whitespace allowed
-        input_descs = [i.split()[0] for i in input_descs]
+    #     # No whitespace allowed
+    #     input_descs = [i.split()[0] for i in input_descs]
 
-        # Stitch all of the sequences together
-        input_sequence = ''.join(input_seqs)
-        input_description = '-'.join(input_descs)
-        num_res = len(input_sequence)
+    #     # Stitch all of the sequences together
+    #     input_sequence = ''.join(input_seqs)
+    #     input_description = '-'.join(input_descs)
+    #     num_res = len(input_sequence)
 
-        sequence_features = make_sequence_features(
-            sequence=input_sequence,
-            description=input_description,
-            num_res=num_res,
-        )
+    #     sequence_features = make_sequence_features(
+    #         sequence=input_sequence,
+    #         description=input_description,
+    #         num_res=num_res,
+    #     )
 
-        seq_lens = [len(s) for s in input_seqs]
-        total_offset = 0
-        for sl in seq_lens:
-            total_offset += sl
-            sequence_features["residue_index"][total_offset:] += ri_gap
+    #     seq_lens = [len(s) for s in input_seqs]
+    #     total_offset = 0
+    #     for sl in seq_lens:
+    #         total_offset += sl
+    #         sequence_features["residue_index"][total_offset:] += ri_gap
 
-        msa_list = []
-        deletion_mat_list = []
-        for seq, desc in zip(input_seqs, input_descs):
-            alignment_dir = os.path.join(
-                super_alignment_dir, desc
-            )
-            msas = self._get_msas(
-                alignment_dir, seq, None
-            )
-            msa_list.append([m.sequences for m in msas])
-            deletion_mat_list.append([m.deletion_matrix for m in msas])
+    #     msa_list = []
+    #     deletion_mat_list = []
+    #     for seq, desc in zip(input_seqs, input_descs):
+    #         alignment_dir = os.path.join(
+    #             super_alignment_dir, desc
+    #         )
+    #         msas = self._get_msas(
+    #             alignment_dir, seq, None
+    #         )
+    #         msa_list.append([m.sequences for m in msas])
+    #         deletion_mat_list.append([m.deletion_matrix for m in msas])
 
-        final_msa = []
-        final_deletion_mat = []
-        final_msa_obj = []
-        msa_it = enumerate(zip(msa_list, deletion_mat_list))
-        for i, (msas, deletion_mats) in msa_it:
-            prec, post = sum(seq_lens[:i]), sum(seq_lens[i + 1:])
-            msas = [
-                [prec * '-' + seq + post * '-' for seq in msa] for msa in msas
-            ]
-            deletion_mats = [
-                [prec * [0] + dml + post * [0] for dml in deletion_mat]
-                for deletion_mat in deletion_mats
-            ]
+    #     final_msa = []
+    #     final_deletion_mat = []
+    #     final_msa_obj = []
+    #     msa_it = enumerate(zip(msa_list, deletion_mat_list))
+    #     for i, (msas, deletion_mats) in msa_it:
+    #         prec, post = sum(seq_lens[:i]), sum(seq_lens[i + 1:])
+    #         msas = [
+    #             [prec * '-' + seq + post * '-' for seq in msa] for msa in msas
+    #         ]
+    #         deletion_mats = [
+    #             [prec * [0] + dml + post * [0] for dml in deletion_mat]
+    #             for deletion_mat in deletion_mats
+    #         ]
 
-            assert (len(msas[0][-1]) == len(input_sequence))
+    #         assert (len(msas[0][-1]) == len(input_sequence))
 
-            final_msa.extend(msas)
-            final_deletion_mat.extend(deletion_mats)
-            final_msa_obj.extend([parsers.Msa(sequences=msas[k], deletion_matrix=deletion_mats[k], descriptions=None)
-                                  for k in range(len(msas))])
+    #         final_msa.extend(msas)
+    #         final_deletion_mat.extend(deletion_mats)
+    #         final_msa_obj.extend([parsers.Msa(sequences=msas[k], deletion_matrix=deletion_mats[k], descriptions=None)
+    #                               for k in range(len(msas))])
 
-        msa_features = make_msa_features(
-            msas=final_msa_obj
-        )
+    #     msa_features = make_msa_features(
+    #         msas=final_msa_obj
+    #     )
 
-        template_feature_list = []
-        for seq, desc in zip(input_seqs, input_descs):
-            alignment_dir = os.path.join(
-                super_alignment_dir, desc
-            )
-            hits = self._parse_template_hit_files(alignment_dir=alignment_dir,
-                                                  input_sequence=seq,
-                                                  alignment_index=None)
+    #     template_feature_list = []
+    #     for seq, desc in zip(input_seqs, input_descs):
+    #         alignment_dir = os.path.join(
+    #             super_alignment_dir, desc
+    #         )
+    #         hits = self._parse_template_hit_files(alignment_dir=alignment_dir,
+    #                                               input_sequence=seq,
+    #                                               alignment_index=None)
 
-            template_features = make_template_features(
-                seq,
-                hits,
-                self.template_featurizer,
-            )
-            template_feature_list.append(template_features)
+    #         template_features = make_template_features(
+    #             seq,
+    #             hits,
+    #             self.template_featurizer,
+    #         )
+    #         template_feature_list.append(template_features)
 
-        template_features = unify_template_features(template_feature_list)
+    #     template_features = unify_template_features(template_feature_list)
 
-        return {
-            **sequence_features,
-            **msa_features,
-            **template_features,
-        }
+    #     return {
+    #         **sequence_features,
+    #         **msa_features,
+    #         **template_features,
+    #     }
 
 
 class DataPipelineMultimer:
