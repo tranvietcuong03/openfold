@@ -22,25 +22,25 @@ from openfold.data import data_transforms_multimer
 from openfold.utils.feats import (
     pseudo_beta_fn,
     build_extra_msa_feat,
-    dgram_from_positions,
+    # dgram_from_positions,
     atom14_to_atom37,
 )
 from openfold.utils.tensor_utils import masked_mean
 from openfold.model.embedders import (
     InputEmbedder,
-    InputEmbedderMultimer,
+    # InputEmbedderMultimer,
     RecyclingEmbedder,
-    TemplateEmbedder,
-    TemplateEmbedderMultimer,
-    ExtraMSAEmbedder,
-    PreembeddingEmbedder,
+    # TemplateEmbedder,
+    # TemplateEmbedderMultimer,
+    # ExtraMSAEmbedder,
+    # PreembeddingEmbedder,
 )
 from openfold.model.evoformer import EvoformerStack #, ExtraMSAStack
 from openfold.model.heads import AuxiliaryHeads
 from openfold.model.structure_module import StructureModule
 from openfold.model.template import (
-    TemplatePairStack,
-    TemplatePointwiseAttention,
+    # TemplatePairStack,
+    # TemplatePointwiseAttention,
     embed_templates_average,
     embed_templates_offload,
 )
@@ -48,16 +48,16 @@ import openfold.np.residue_constants as residue_constants
 from openfold.utils.feats import (
     pseudo_beta_fn,
     build_extra_msa_feat,
-    build_template_angle_feat,
-    build_template_pair_feat,
+    # build_template_angle_feat,
+    # build_template_pair_feat,
     atom14_to_atom37,
 )
-from openfold.utils.loss import (
-    compute_plddt,
-)
+# from openfold.utils.loss import (
+#     compute_plddt,
+# )
 from openfold.utils.tensor_utils import (
     add,
-    dict_multimap,
+    # dict_multimap,
     tensor_tree_map,
 )
 
@@ -84,34 +84,34 @@ class AlphaFold(nn.Module):
         self.seqemb_mode = config.globals.seqemb_mode_enabled
 
         # Main trunk + structure module
-        if self.globals.is_multimer:
-            self.input_embedder = InputEmbedderMultimer(
-                **self.config["input_embedder"]
-            )
-        elif self.seqemb_mode:
-            # If using seqemb mode, embed the sequence embeddings passed
-            # to the model ("preembeddings") instead of embedding the sequence
-            self.input_embedder = PreembeddingEmbedder(
-                **self.config["preembedding_embedder"],
-            )
-        else:
-            self.input_embedder = InputEmbedder(
-                **self.config["input_embedder"],
-            )
+        # if self.globals.is_multimer:
+        #     self.input_embedder = InputEmbedderMultimer(
+        #         **self.config["input_embedder"]
+        #     )
+        # elif self.seqemb_mode:
+        #     # If using seqemb mode, embed the sequence embeddings passed
+        #     # to the model ("preembeddings") instead of embedding the sequence
+        #     self.input_embedder = PreembeddingEmbedder(
+        #         **self.config["preembedding_embedder"],
+        #     )else:
+        self.input_embedder = InputEmbedder(
+            **self.config["input_embedder"],
+        )
+        
 
         self.recycling_embedder = RecyclingEmbedder(
             **self.config["recycling_embedder"],
         )
 
-        if self.template_config.enabled:
-            if self.globals.is_multimer:
-                self.template_embedder = TemplateEmbedderMultimer(
-                    self.template_config,
-                )
-            else:
-                self.template_embedder = TemplateEmbedder(
-                    self.template_config,
-                )
+        # if self.template_config.enabled:
+        #     if self.globals.is_multimer:
+        #         self.template_embedder = TemplateEmbedderMultimer(
+        #             self.template_config,
+        #         )
+        #     else:
+        #         self.template_embedder = TemplateEmbedder(
+        #             self.template_config,
+        #         )
 
         # if self.extra_msa_config.enabled:
         #     self.extra_msa_embedder = ExtraMSAEmbedder(
