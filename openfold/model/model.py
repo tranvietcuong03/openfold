@@ -35,7 +35,7 @@ from openfold.model.embedders import (
     ExtraMSAEmbedder,
     PreembeddingEmbedder,
 )
-from openfold.model.evoformer import EvoformerStack, ExtraMSAStack
+from openfold.model.evoformer import EvoformerStack #, ExtraMSAStack
 from openfold.model.heads import AuxiliaryHeads
 from openfold.model.structure_module import StructureModule
 from openfold.model.template import (
@@ -113,13 +113,13 @@ class AlphaFold(nn.Module):
                     self.template_config,
                 )
 
-        if self.extra_msa_config.enabled:
-            self.extra_msa_embedder = ExtraMSAEmbedder(
-                **self.extra_msa_config["extra_msa_embedder"],
-            )
-            self.extra_msa_stack = ExtraMSAStack(
-                **self.extra_msa_config["extra_msa_stack"],
-            )
+        # if self.extra_msa_config.enabled:
+        #     self.extra_msa_embedder = ExtraMSAEmbedder(
+        #         **self.extra_msa_config["extra_msa_embedder"],
+        #     )
+        #     self.extra_msa_stack = ExtraMSAStack(
+        #         **self.extra_msa_config["extra_msa_stack"],
+        #     )
 
         self.evoformer = EvoformerStack(
             **self.config["evoformer_stack"],
