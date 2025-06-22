@@ -38,12 +38,12 @@ from openfold.model.embedders import (
 from openfold.model.evoformer import EvoformerStack #, ExtraMSAStack
 from openfold.model.heads import AuxiliaryHeads
 from openfold.model.structure_module import StructureModule
-from openfold.model.template import (
-    # TemplatePairStack,
-    # TemplatePointwiseAttention,
-    embed_templates_average,
-    embed_templates_offload,
-)
+# from openfold.model.template import (
+#     TemplatePairStack,
+#     TemplatePointwiseAttention,
+#     embed_templates_average,
+#     embed_templates_offload,
+# )
 import openfold.np.residue_constants as residue_constants
 from openfold.utils.feats import (
     pseudo_beta_fn,
@@ -154,15 +154,15 @@ class AlphaFold(nn.Module):
             feats["template_torsion_angles_mask"] = (
                 template_embeds["template_mask"]
             )
-        else:
-            if self.template_config.offload_templates:
-                return embed_templates_offload(self,
-                                               batch, z, pair_mask, templ_dim, inplace_safe=inplace_safe,
-                                               )
-            elif self.template_config.average_templates:
-                return embed_templates_average(self,
-                                               batch, z, pair_mask, templ_dim, inplace_safe=inplace_safe,
-                                               )
+        # else:
+        #     if self.template_config.offload_templates:
+        #         return embed_templates_offload(self,
+        #                                        batch, z, pair_mask, templ_dim, inplace_safe=inplace_safe,
+        #                                        )
+        #     elif self.template_config.average_templates:
+        #         return embed_templates_average(self,
+        #                                        batch, z, pair_mask, templ_dim, inplace_safe=inplace_safe,
+        #                                        )
 
             template_embeds = self.template_embedder(
                 batch,
