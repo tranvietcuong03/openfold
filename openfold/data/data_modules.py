@@ -23,7 +23,7 @@ from openfold.utils.tensor_utils import (
 )
 
 
-class OpenFoldSingleDataset(torch.utils.data.Dataset):
+class OpenFoldDataset(torch.utils.data.Dataset):
     def __init__(self,
                  data_dir: str,
                  alignment_dir: str,
@@ -84,7 +84,7 @@ class OpenFoldSingleDataset(torch.utils.data.Dataset):
                 mode:
                     "train", "val", or "predict"
         """
-        super(OpenFoldSingleDataset, self).__init__()
+        super(OpenFoldDataset, self).__init__()
         self.data_dir = data_dir
 
         # self.chain_data_cache = None
@@ -937,7 +937,7 @@ class OpenFoldDataModule(pl.LightningDataModule):
         #         self.distillation_alignment_index = json.load(fp)
 
     def setup(self, stage=None):
-        self.train_dataset = OpenFoldSingleDataset(
+        self.train_dataset = OpenFoldDataset(
             # template_mmcif_dir=self.template_mmcif_dir,
             # max_template_date=self.max_template_date,
             config=self.config,
