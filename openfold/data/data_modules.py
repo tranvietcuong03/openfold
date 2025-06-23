@@ -14,8 +14,8 @@ from openfold.np.residue_constants import restypes
 from openfold.data import (
     data_pipeline,
     feature_pipeline,
-    mmcif_parsing,
-    templates,
+    mmcif_parsing
+    # templates,
 )
 from openfold.utils.tensor_utils import dict_multimap
 from openfold.utils.tensor_utils import (
@@ -156,15 +156,15 @@ class OpenFoldSingleDataset(torch.utils.data.Dataset):
         # If it's running template search for a monomer, then use hhsearch
         # as demonstrated in AlphaFold's run_alphafold.py code
         # https://github.com/deepmind/alphafold/blob/6c4d833fbd1c6b8e7c9a21dae5d4ada2ce777e10/run_alphafold.py#L462C1-L477
-        template_featurizer = templates.HhsearchHitFeaturizer(
-            mmcif_dir=template_mmcif_dir,
-            max_template_date=max_template_date,
-            max_hits=max_template_hits,
-            kalign_binary_path=kalign_binary_path,
-            release_dates_path=template_release_dates_cache_path,
-            obsolete_pdbs_path=obsolete_pdbs_file_path,
-            _shuffle_top_k_prefiltered=shuffle_top_k_prefiltered,
-        )
+        # template_featurizer = templates.HhsearchHitFeaturizer(
+        #     mmcif_dir=template_mmcif_dir,
+        #     max_template_date=max_template_date,
+        #     max_hits=max_template_hits,
+        #     kalign_binary_path=kalign_binary_path,
+        #     release_dates_path=template_release_dates_cache_path,
+        #     obsolete_pdbs_path=obsolete_pdbs_file_path,
+        #     _shuffle_top_k_prefiltered=shuffle_top_k_prefiltered,
+        # )
 
         self.data_pipeline = data_pipeline.DataPipeline(
             # template_featurizer=template_featurizer,
