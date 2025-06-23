@@ -360,46 +360,46 @@ class AlphaFold(nn.Module):
                     )
 
         # Embed extra MSA features + merge with pairwise embeddings
-        if self.config.extra_msa.enabled:
-            if self.globals.is_multimer:
-                extra_msa_fn = data_transforms_multimer.build_extra_msa_feat
-            else:
-                extra_msa_fn = build_extra_msa_feat
+        # if self.config.extra_msa.enabled:
+        #     if self.globals.is_multimer:
+        #         extra_msa_fn = data_transforms_multimer.build_extra_msa_feat
+        #     else:
+        #         extra_msa_fn = build_extra_msa_feat
 
-            # [*, S_e, N, C_e]
-            extra_msa_feat = extra_msa_fn(feats).to(dtype=z.dtype)
-            a = self.extra_msa_embedder(extra_msa_feat)
+        #     # [*, S_e, N, C_e]
+        #     extra_msa_feat = extra_msa_fn(feats).to(dtype=z.dtype)
+        #     a = self.extra_msa_embedder(extra_msa_feat)
 
-            if self.globals.offload_inference:
-                # To allow the extra MSA stack (and later the evoformer) to
-                # offload its inputs, we remove all references to them here
-                input_tensors = [a, z]
-                del a, z
+        #     if self.globals.offload_inference:
+        #         # To allow the extra MSA stack (and later the evoformer) to
+        #         # offload its inputs, we remove all references to them here
+        #         input_tensors = [a, z]
+        #         del a, z
 
-                # [*, N, N, C_z]
-                z = self.extra_msa_stack._forward_offload(
-                    input_tensors,
-                    msa_mask=feats["extra_msa_mask"].to(dtype=m.dtype),
-                    chunk_size=self.globals.chunk_size,
-                    use_deepspeed_evo_attention=self.globals.use_deepspeed_evo_attention,
-                    use_lma=self.globals.use_lma,
-                    pair_mask=pair_mask.to(dtype=m.dtype),
-                    _mask_trans=self.config._mask_trans,
-                )
+        #         # [*, N, N, C_z]
+        #         z = self.extra_msa_stack._forward_offload(
+        #             input_tensors,
+        #             msa_mask=feats["extra_msa_mask"].to(dtype=m.dtype),
+        #             chunk_size=self.globals.chunk_size,
+        #             use_deepspeed_evo_attention=self.globals.use_deepspeed_evo_attention,
+        #             use_lma=self.globals.use_lma,
+        #             pair_mask=pair_mask.to(dtype=m.dtype),
+        #             _mask_trans=self.config._mask_trans,
+        #         )
 
-                del input_tensors
-            else:
-                # [*, N, N, C_z]
-                z = self.extra_msa_stack(
-                    a, z,
-                    msa_mask=feats["extra_msa_mask"].to(dtype=m.dtype),
-                    chunk_size=self.globals.chunk_size,
-                    use_deepspeed_evo_attention=self.globals.use_deepspeed_evo_attention,
-                    use_lma=self.globals.use_lma,
-                    pair_mask=pair_mask.to(dtype=m.dtype),
-                    inplace_safe=inplace_safe,
-                    _mask_trans=self.config._mask_trans,
-                )
+        #         del input_tensors
+        #     else:
+        #         # [*, N, N, C_z]
+        #         z = self.extra_msa_stack(
+        #             a, z,
+        #             msa_mask=feats["extra_msa_mask"].to(dtype=m.dtype),
+        #             chunk_size=self.globals.chunk_size,
+        #             use_deepspeed_evo_attention=self.globals.use_deepspeed_evo_attention,
+        #             use_lma=self.globals.use_lma,
+        #             pair_mask=pair_mask.to(dtype=m.dtype),
+        #             inplace_safe=inplace_safe,
+        #             _mask_trans=self.config._mask_trans,
+        #         )
 
         # Run MSA + pair embeddings through the trunk of the network
         # m: [*, S, N, C_m]
