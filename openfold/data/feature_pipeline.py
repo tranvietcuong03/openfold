@@ -20,7 +20,7 @@ import ml_collections
 import numpy as np
 import torch
 
-from openfold.data import input_pipeline, input_pipeline_multimer
+from openfold.data import input_pipeline #, input_pipeline_multimer
 
 
 FeatureDict = Mapping[str, np.ndarray]
@@ -98,18 +98,18 @@ def np_example_to_features(
     )
 
     with torch.no_grad():
-        if is_multimer:
-            features = input_pipeline_multimer.process_tensors_from_config(
-                tensor_dict,
-                cfg.common,
-                cfg[mode],
-            )
-        else:
-            features = input_pipeline.process_tensors_from_config(
-                tensor_dict,
-                cfg.common,
-                cfg[mode],
-            )
+        # if is_multimer:
+        #     features = input_pipeline_multimer.process_tensors_from_config(
+        #         tensor_dict,
+        #         cfg.common,
+        #         cfg[mode],
+        #     )
+        # else:
+        features = input_pipeline.process_tensors_from_config(
+            tensor_dict,
+            cfg.common,
+            cfg[mode],
+        )
 
     if mode == "train":
         p = torch.rand(1).item()

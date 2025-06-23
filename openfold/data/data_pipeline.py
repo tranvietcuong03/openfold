@@ -27,8 +27,8 @@ from openfold.data import (
     # templates,
     parsers,
     mmcif_parsing,
-    msa_identifiers,
-    msa_pairing
+    msa_identifiers
+    # msa_pairing
     # feature_processing_multimer,
 )
 # from openfold.data.templates import (
