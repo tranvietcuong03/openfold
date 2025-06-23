@@ -645,14 +645,14 @@ if __name__ == "__main__":
     # )
 
     # here
-    parser.add_argument(
-        "--config_preset", type=str, default="initial_training",
-        help=(
-            'Config setting. Choose e.g. "initial_training", "finetuning", '
-            '"model_1", etc. By default, the actual values in the config are '
-            'used.'
-        )
-    )
+    # parser.add_argument(
+    #     "--config_preset", type=str, default="initial_training",
+    #     help=(
+    #         'Config setting. Choose e.g. "initial_training", "finetuning", '
+    #         '"model_1", etc. By default, the actual values in the config are '
+    #         'used.'
+    #     )
+    # )
     # parser.add_argument(
     #     "--_distillation_structure_index_path", type=str, default=None,
     # )
