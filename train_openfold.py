@@ -355,8 +355,8 @@ def main(args):
     data_module = OpenFoldDataModule(
         config=config.data,
         batch_seed=args.seed,
-        data_dir=args.data_dir,
-        alignment_dir=args.alignment_dir
+        data_dir=args.train_data_dir,
+        alignment_dir=args.train_alignment_dir
         # **vars(args)
     )
 
