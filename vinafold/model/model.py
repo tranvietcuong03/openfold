@@ -162,6 +162,8 @@ class AlphaFold(nn.Module):
         return outputs, m_1_prev, z_prev, x_prev
 
     def forward(self, batch):
+        print(batch.keys(), end="\n\n")
+        raise Exception("Batch Features Exp")
         m_1_prev, z_prev, x_prev = None, None, None
         prevs = [m_1_prev, z_prev, x_prev]
 
