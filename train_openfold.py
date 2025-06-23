@@ -47,16 +47,16 @@ class OpenFoldWrapper(pl.LightningModule):
         super(OpenFoldWrapper, self).__init__()
         self.config = config
         self.model = AlphaFold(config)
-        self.is_multimer = self.config.globals.is_multimer
+        # self.is_multimer = self.config.globals.is_multimer
 
         self.loss = AlphaFoldLoss(config.loss)
 
-        self.ema = ExponentialMovingAverage(
-            model=self.model, decay=config.ema.decay
-        )
+        # self.ema = ExponentialMovingAverage(
+        #     model=self.model, decay=config.ema.decay
+        # )
 
-        self.cached_weights = None
-        self.last_lr_step = -1
+        # self.cached_weights = None
+        # self.last_lr_step = -1
         self.save_hyperparameters()
 
     def forward(self, batch):
@@ -79,26 +79,26 @@ class OpenFoldWrapper(pl.LightningModule):
                     on_step=False, on_epoch=True, logger=True, sync_dist=False,
                 )
 
-        with torch.no_grad():
-            other_metrics = self._compute_validation_metrics(
-                batch,
-                outputs,
-                superimposition_metrics=(not train)
-            )
+        # with torch.no_grad():
+        #     other_metrics = self._compute_validation_metrics(
+        #         batch,
+        #         outputs,
+        #         superimposition_metrics=(not train)
+        #     )
 
-        for k, v in other_metrics.items():
-            self.log(
-                f"{phase}/{k}",
-                torch.mean(v),
-                prog_bar = (k == 'loss'),
-                on_step=False, on_epoch=True, logger=True, sync_dist=False,
-            )
+        # for k, v in other_metrics.items():
+        #     self.log(
+        #         f"{phase}/{k}",
+        #         torch.mean(v),
+        #         prog_bar = (k == 'loss'),
+        #         on_step=False, on_epoch=True, logger=True, sync_dist=False,
+        #     )
 
     def training_step(self, batch, batch_idx):
         if (self.ema.device != batch["aatype"].device):
             self.ema.to(batch["aatype"].device)
 
-        ground_truth = batch.pop('gt_features', None)
+        # ground_truth = batch.pop('gt_features', None)
 
         # Run the model
         outputs = self(batch)
@@ -106,10 +106,10 @@ class OpenFoldWrapper(pl.LightningModule):
         # Remove the recycling dimension
         batch = tensor_tree_map(lambda t: t[..., -1], batch)
 
-        if self.is_multimer:
-            batch = multi_chain_permutation_align(out=outputs,
-                                                  features=batch,
-                                                  ground_truth=ground_truth)
+        # if self.is_multimer:
+        #     batch = multi_chain_permutation_align(out=outputs,
+        #                                           features=batch,
+        #                                           ground_truth=ground_truth)
 
         # Compute loss
         loss, loss_breakdown = self.loss(
@@ -121,21 +121,21 @@ class OpenFoldWrapper(pl.LightningModule):
 
         return loss
 
-    def on_before_zero_grad(self, *args, **kwargs):
-        self.ema.update(self.model)
+    # def on_before_zero_grad(self, *args, **kwargs):
+    #     self.ema.update(self.model)
 
     def validation_step(self, batch, batch_idx):
         # At the start of validation, load the EMA weights
-        if (self.cached_weights is None):
-            # model.state_dict() contains references to model weights rather
-            # than copies. Therefore, we need to clone them before calling
-            # load_state_dict().
-            def clone_param(t): return t.detach().clone()
-            self.cached_weights = tensor_tree_map(
-                clone_param, self.model.state_dict())
-            self.model.load_state_dict(self.ema.state_dict()["params"])
+        # if (self.cached_weights is None):
+        #     # model.state_dict() contains references to model weights rather
+        #     # than copies. Therefore, we need to clone them before calling
+        #     # load_state_dict().
+        #     def clone_param(t): return t.detach().clone()
+        #     self.cached_weights = tensor_tree_map(
+        #         clone_param, self.model.state_dict())
+        self.model.load_state_dict(self.ema.state_dict()["params"])
 
-        ground_truth = batch.pop('gt_features', None)
+        # ground_truth = batch.pop('gt_features', None)
 
         # Run the model
         outputs = self(batch)
@@ -143,10 +143,10 @@ class OpenFoldWrapper(pl.LightningModule):
 
         batch["use_clamped_fape"] = 0.
 
-        if self.is_multimer:
-            batch = multi_chain_permutation_align(out=outputs,
-                                                  features=batch,
-                                                  ground_truth=ground_truth)
+        # if self.is_multimer:
+        #     batch = multi_chain_permutation_align(out=outputs,
+        #                                           features=batch,
+        #                                           ground_truth=ground_truth)
 
         # Compute loss and other metrics
         _, loss_breakdown = self.loss(
@@ -155,185 +155,191 @@ class OpenFoldWrapper(pl.LightningModule):
 
         self._log(loss_breakdown, batch, outputs, train=False)
         
-    def on_validation_epoch_end(self):
-        # Restore the model weights to normal
-        self.model.load_state_dict(self.cached_weights)
-        self.cached_weights = None
+    # def on_validation_epoch_end(self):
+    #     # Restore the model weights to normal
+    #     self.model.load_state_dict(self.cached_weights)
+    #     self.cached_weights = None
 
-    def _compute_validation_metrics(self,
-                                    batch,
-                                    outputs,
-                                    superimposition_metrics=False
-                                    ):
-        metrics = {}
+    # def _compute_validation_metrics(self,
+    #                                 batch,
+    #                                 outputs,
+    #                                 superimposition_metrics=False
+    #                                 ):
+    #     metrics = {}
 
-        gt_coords = batch["all_atom_positions"]
-        pred_coords = outputs["final_atom_positions"]
-        all_atom_mask = batch["all_atom_mask"]
+    #     gt_coords = batch["all_atom_positions"]
+    #     pred_coords = outputs["final_atom_positions"]
+    #     all_atom_mask = batch["all_atom_mask"]
 
-        # This is super janky for superimposition. Fix later
-        gt_coords_masked = gt_coords * all_atom_mask[..., None]
-        pred_coords_masked = pred_coords * all_atom_mask[..., None]
-        ca_pos = residue_constants.atom_order["CA"]
-        gt_coords_masked_ca = gt_coords_masked[..., ca_pos, :]
-        pred_coords_masked_ca = pred_coords_masked[..., ca_pos, :]
-        all_atom_mask_ca = all_atom_mask[..., ca_pos]
+    #     # This is super janky for superimposition. Fix later
+    #     gt_coords_masked = gt_coords * all_atom_mask[..., None]
+    #     pred_coords_masked = pred_coords * all_atom_mask[..., None]
+    #     ca_pos = residue_constants.atom_order["CA"]
+    #     gt_coords_masked_ca = gt_coords_masked[..., ca_pos, :]
+    #     pred_coords_masked_ca = pred_coords_masked[..., ca_pos, :]
+    #     all_atom_mask_ca = all_atom_mask[..., ca_pos]
 
-        lddt_ca_score = lddt_ca(
-            pred_coords,
-            gt_coords,
-            all_atom_mask,
-            eps=self.config.globals.eps,
-            per_residue=False,
-        )
+    #     lddt_ca_score = lddt_ca(
+    #         pred_coords,
+    #         gt_coords,
+    #         all_atom_mask,
+    #         eps=self.config.globals.eps,
+    #         per_residue=False,
+    #     )
 
-        metrics["lddt_ca"] = lddt_ca_score
+    #     metrics["lddt_ca"] = lddt_ca_score
 
-        drmsd_ca_score = drmsd(
-            pred_coords_masked_ca,
-            gt_coords_masked_ca,
-            mask=all_atom_mask_ca,  # still required here to compute n
-        )
+    #     drmsd_ca_score = drmsd(
+    #         pred_coords_masked_ca,
+    #         gt_coords_masked_ca,
+    #         mask=all_atom_mask_ca,  # still required here to compute n
+    #     )
 
-        metrics["drmsd_ca"] = drmsd_ca_score
+    #     metrics["drmsd_ca"] = drmsd_ca_score
 
-        if (superimposition_metrics):
-            superimposed_pred, alignment_rmsd = superimpose(
-                gt_coords_masked_ca, pred_coords_masked_ca, all_atom_mask_ca,
-            )
-            gdt_ts_score = gdt_ts(
-                superimposed_pred, gt_coords_masked_ca, all_atom_mask_ca
-            )
-            gdt_ha_score = gdt_ha(
-                superimposed_pred, gt_coords_masked_ca, all_atom_mask_ca
-            )
+    #     if (superimposition_metrics):
+    #         superimposed_pred, alignment_rmsd = superimpose(
+    #             gt_coords_masked_ca, pred_coords_masked_ca, all_atom_mask_ca,
+    #         )
+    #         gdt_ts_score = gdt_ts(
+    #             superimposed_pred, gt_coords_masked_ca, all_atom_mask_ca
+    #         )
+    #         gdt_ha_score = gdt_ha(
+    #             superimposed_pred, gt_coords_masked_ca, all_atom_mask_ca
+    #         )
 
-            metrics["alignment_rmsd"] = alignment_rmsd
-            metrics["gdt_ts"] = gdt_ts_score
-            metrics["gdt_ha"] = gdt_ha_score
+    #         metrics["alignment_rmsd"] = alignment_rmsd
+    #         metrics["gdt_ts"] = gdt_ts_score
+    #         metrics["gdt_ha"] = gdt_ha_score
 
-        return metrics
+    #     return metrics
 
     def configure_optimizers(self, 
         learning_rate: float = 1e-3,
         eps: float = 1e-5,
     ) -> torch.optim.Adam:
         # Ignored as long as a DeepSpeed optimizer is configured
-        optimizer = torch.optim.Adam(
+        # optimizer = torch.optim.Adam(
+        #     self.model.parameters(),
+        #     lr=learning_rate,
+        #     eps=eps
+        # )
+
+        # if self.last_lr_step != -1:
+        #     for group in optimizer.param_groups:
+        #         if 'initial_lr' not in group:
+        #             group['initial_lr'] = learning_rate
+
+        # lr_scheduler = AlphaFoldLRScheduler(
+        #     optimizer,
+        #     last_epoch=self.last_lr_step
+        # )
+
+        # return {
+        #     "optimizer": optimizer,
+        #     "lr_scheduler": {
+        #         "scheduler": lr_scheduler,
+        #         "interval": "step",
+        #         "name": "AlphaFoldLRScheduler",
+        #     }
+        # }
+
+        return torch.optim.Adam(
             self.model.parameters(),
             lr=learning_rate,
             eps=eps
         )
 
-        if self.last_lr_step != -1:
-            for group in optimizer.param_groups:
-                if 'initial_lr' not in group:
-                    group['initial_lr'] = learning_rate
+#     def on_load_checkpoint(self, checkpoint):
+#         ema = checkpoint["ema"]
+#         # if (not self.model.template_config.enabled):
+#         #     ema["params"] = {k: v for k,
+#         #                      v in ema["params"].items() if not "template" in k}
+#         self.ema.load_state_dict(ema)
 
-        lr_scheduler = AlphaFoldLRScheduler(
-            optimizer,
-            last_epoch=self.last_lr_step
-        )
+#     def on_save_checkpoint(self, checkpoint):
+#         checkpoint["ema"] = self.ema.state_dict()
 
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": lr_scheduler,
-                "interval": "step",
-                "name": "AlphaFoldLRScheduler",
-            }
-        }
+#     def resume_last_lr_step(self, lr_step):
+#         self.last_lr_step = lr_step
 
-    def on_load_checkpoint(self, checkpoint):
-        ema = checkpoint["ema"]
-        if (not self.model.template_config.enabled):
-            ema["params"] = {k: v for k,
-                             v in ema["params"].items() if not "template" in k}
-        self.ema.load_state_dict(ema)
+#     def load_from_jax(self, jax_path):
+#         model_basename = os.path.splitext(
+#             os.path.basename(
+#                 os.path.normpath(jax_path)
+#             )
+#         )[0]
+#         model_version = "_".join(model_basename.split("_")[1:])
+#         import_jax_weights_(
+#             self.model, jax_path, version=model_version
+#         )
 
-    def on_save_checkpoint(self, checkpoint):
-        checkpoint["ema"] = self.ema.state_dict()
+# def get_model_state_dict_from_ds_checkpoint(checkpoint_dir):
+#     latest_path = os.path.join(checkpoint_dir, 'latest')
+#     if os.path.isfile(latest_path):
+#         with open(latest_path, 'r') as fd:
+#             tag = fd.read().strip()
+#     else:
+#         raise ValueError(f"Unable to find 'latest' file at {latest_path}")
 
-    def resume_last_lr_step(self, lr_step):
-        self.last_lr_step = lr_step
-
-    def load_from_jax(self, jax_path):
-        model_basename = os.path.splitext(
-            os.path.basename(
-                os.path.normpath(jax_path)
-            )
-        )[0]
-        model_version = "_".join(model_basename.split("_")[1:])
-        import_jax_weights_(
-            self.model, jax_path, version=model_version
-        )
-
-def get_model_state_dict_from_ds_checkpoint(checkpoint_dir):
-    latest_path = os.path.join(checkpoint_dir, 'latest')
-    if os.path.isfile(latest_path):
-        with open(latest_path, 'r') as fd:
-            tag = fd.read().strip()
-    else:
-        raise ValueError(f"Unable to find 'latest' file at {latest_path}")
-
-    ds_checkpoint_dir = os.path.join(checkpoint_dir, tag)
-    _DS_CHECKPOINT_VERSION = 2  # based on manual parsing of checkpoint files
-    state_file = zero_to_fp32.get_model_state_file(ds_checkpoint_dir, _DS_CHECKPOINT_VERSION)
-    return torch.load(state_file)
+#     ds_checkpoint_dir = os.path.join(checkpoint_dir, tag)
+#     _DS_CHECKPOINT_VERSION = 2  # based on manual parsing of checkpoint files
+#     state_file = zero_to_fp32.get_model_state_file(ds_checkpoint_dir, _DS_CHECKPOINT_VERSION)
+#     return torch.load(state_file)
 
 def main(args):
     if(args.seed is not None):
         seed_everything(args.seed, workers=True) 
 
-    is_low_precision = args.precision in [
-        "bf16-mixed", "16", "bf16", "16-true", "16-mixed", "bf16-mixed"]
+    # is_low_precision = args.precision in [
+    #     "bf16-mixed", "16", "bf16", "16-true", "16-mixed", "bf16-mixed"]
 
     config = model_config(
         args.config_preset, 
         train=True, 
-        low_prec=is_low_precision,
+        low_prec=True,
     ) 
-    if args.experiment_config_json: 
-        with open(args.experiment_config_json, 'r') as f:
-            custom_config_dict = json.load(f)
-        config.update_from_flattened_dict(custom_config_dict)
+    # if args.experiment_config_json: 
+    #     with open(args.experiment_config_json, 'r') as f:
+    #         custom_config_dict = json.load(f)
+    #     config.update_from_flattened_dict(custom_config_dict)
 
     model_module = OpenFoldWrapper(config)
 
-    if args.resume_from_ckpt:
-        if args.resume_model_weights_only:
-            # Load the checkpoint
-            if os.path.isdir(args.resume_from_ckpt):
-                sd = zero_to_fp32.get_fp32_state_dict_from_zero_checkpoint(
-                    args.resume_from_ckpt)
-            else:
-                sd = torch.load(args.resume_from_ckpt)
-            # Process the state dict
-            if 'module' in sd:
-                sd = {k[len('module.'):]: v for k, v in sd['module'].items()}
-                import_openfold_weights_(model=model_module, state_dict=sd)
-            elif 'state_dict' in sd:
-                import_openfold_weights_(
-                    model=model_module, state_dict=sd['state_dict'])
-            else:
-                # Loading from pre-trained model
-                sd = {'model.'+k: v for k, v in sd.items()}
-                import_openfold_weights_(model=model_module, state_dict=sd)
-            logging.info("Successfully loaded model weights...")
+    # if args.resume_from_ckpt:
+    #     if args.resume_model_weights_only:
+    #         # Load the checkpoint
+    #         if os.path.isdir(args.resume_from_ckpt):
+    #             sd = zero_to_fp32.get_fp32_state_dict_from_zero_checkpoint(
+    #                 args.resume_from_ckpt)
+    #         else:
+    #             sd = torch.load(args.resume_from_ckpt)
+    #         # Process the state dict
+    #         if 'module' in sd:
+    #             sd = {k[len('module.'):]: v for k, v in sd['module'].items()}
+    #             import_openfold_weights_(model=model_module, state_dict=sd)
+    #         elif 'state_dict' in sd:
+    #             import_openfold_weights_(
+    #                 model=model_module, state_dict=sd['state_dict'])
+    #         else:
+    #             # Loading from pre-trained model
+    #             sd = {'model.'+k: v for k, v in sd.items()}
+    #             import_openfold_weights_(model=model_module, state_dict=sd)
+    #         logging.info("Successfully loaded model weights...")
 
-        else:  # Loads a checkpoint to start from a specific time step
-            if os.path.isdir(args.resume_from_ckpt):
-                sd = get_model_state_dict_from_ds_checkpoint(args.resume_from_ckpt)
-            else:
-                sd = torch.load(args.resume_from_ckpt)
-            last_global_step = int(sd['global_step'])
-            model_module.resume_last_lr_step(last_global_step)
-            logging.info("Successfully loaded last lr step...")
+    #     else:  # Loads a checkpoint to start from a specific time step
+    #         if os.path.isdir(args.resume_from_ckpt):
+    #             sd = get_model_state_dict_from_ds_checkpoint(args.resume_from_ckpt)
+    #         else:
+    #             sd = torch.load(args.resume_from_ckpt)
+    #         last_global_step = int(sd['global_step'])
+    #         model_module.resume_last_lr_step(last_global_step)
+    #         logging.info("Successfully loaded last lr step...")
 
-    if args.resume_from_jax_params:
-        model_module.load_from_jax(args.resume_from_jax_params)
-        logging.info(
-            f"Successfully loaded JAX parameters at {args.resume_from_jax_params}...")
+    # if args.resume_from_jax_params:
+    #     model_module.load_from_jax(args.resume_from_jax_params)
+    #     logging.info(
+    #         f"Successfully loaded JAX parameters at {args.resume_from_jax_params}...")
 
     # TorchScript components of the model
     if (args.script_modules):
@@ -355,82 +361,82 @@ def main(args):
     data_module.prepare_data()
     data_module.setup()
 
-    callbacks = []
-    if (args.checkpoint_every_epoch):
-        mc = ModelCheckpoint(
-            every_n_epochs=1,
-            auto_insert_metric_name=False,
-            save_top_k=-1,
-        )
-        callbacks.append(mc)
+    # callbacks = []
+    # if (args.checkpoint_every_epoch):
+    #     mc = ModelCheckpoint(
+    #         every_n_epochs=1,
+    #         auto_insert_metric_name=False,
+    #         save_top_k=-1,
+    #     )
+    #     callbacks.append(mc)
 
-    if (args.early_stopping):
-        es = EarlyStoppingVerbose(
-            monitor="val/lddt_ca",
-            min_delta=args.min_delta,
-            patience=args.patience,
-            verbose=False,
-            mode="max",
-            check_finite=True,
-            strict=True,
-        )
-        callbacks.append(es)
+    # if (args.early_stopping):
+    #     es = EarlyStoppingVerbose(
+    #         monitor="val/lddt_ca",
+    #         min_delta=args.min_delta,
+    #         patience=args.patience,
+    #         verbose=False,
+    #         mode="max",
+    #         check_finite=True,
+    #         strict=True,
+    #     )
+    #     callbacks.append(es)
 
-    if (args.log_performance):
-        global_batch_size = args.num_nodes * args.gpus
-        perf = PerformanceLoggingCallback(
-            log_file=os.path.join(args.output_dir, "performance_log.json"),
-            global_batch_size=global_batch_size,
-        )
-        callbacks.append(perf)
+    # if (args.log_performance):
+    #     global_batch_size = args.num_nodes * args.gpus
+    #     perf = PerformanceLoggingCallback(
+    #         log_file=os.path.join(args.output_dir, "performance_log.json"),
+    #         global_batch_size=global_batch_size,
+    #     )
+    #     callbacks.append(perf)
 
-    if (args.log_lr):
-        lr_monitor = LearningRateMonitor(logging_interval="step")
-        callbacks.append(lr_monitor)
+    # if (args.log_lr):
+    #     lr_monitor = LearningRateMonitor(logging_interval="step")
+    #     callbacks.append(lr_monitor)
 
-    loggers = []
-    is_rank_zero = args.mpi_plugin and (int(os.environ.get("PMI_RANK")) == 0)
-    if(args.wandb):
-        if args.mpi_plugin and is_rank_zero:
-            wandb_init_dict = dict(
-                name=args.experiment_name,
-                project=args.wandb_project,
-                id=args.wandb_id,
-                dir=args.output_dir,
-                resume="allow",
-                anonymous=None,
-                entity=args.wandb_entity
-            )
-            wandb.run = wandb.init(**wandb_init_dict)
+    # loggers = []
+    # is_rank_zero = args.mpi_plugin and (int(os.environ.get("PMI_RANK")) == 0)
+    # if(args.wandb):
+    #     if args.mpi_plugin and is_rank_zero:
+    #         wandb_init_dict = dict(
+    #             name=args.experiment_name,
+    #             project=args.wandb_project,
+    #             id=args.wandb_id,
+    #             dir=args.output_dir,
+    #             resume="allow",
+    #             anonymous=None,
+    #             entity=args.wandb_entity
+    #         )
+    #         wandb.run = wandb.init(**wandb_init_dict)
 
-        wdb_logger = WandbLogger(
-            name=args.experiment_name,
-            save_dir=args.output_dir,
-            id=args.wandb_id,
-            project=args.wandb_project,
-            **{"entity": args.wandb_entity}
-        )
-        loggers.append(wdb_logger)
+    #     wdb_logger = WandbLogger(
+    #         name=args.experiment_name,
+    #         save_dir=args.output_dir,
+    #         id=args.wandb_id,
+    #         project=args.wandb_project,
+    #         **{"entity": args.wandb_entity}
+    #     )
+    #     loggers.append(wdb_logger)
 
     cluster_environment = MPIEnvironment() if args.mpi_plugin else None
-    if(args.deepspeed_config_path is not None):
-        strategy = DeepSpeedStrategy(
-            config=args.deepspeed_config_path,
-            cluster_environment=cluster_environment,
-        )
-        if(args.wandb and is_rank_zero):
-            wdb_logger.experiment.save(args.deepspeed_config_path)
-            wdb_logger.experiment.save("openfold/config.py")
-    elif (args.gpus is not None and args.gpus > 1) or args.num_nodes > 1:
+    # if(args.deepspeed_config_path is not None):
+    #     strategy = DeepSpeedStrategy(
+    #         config=args.deepspeed_config_path,
+    #         cluster_environment=cluster_environment,
+    #     )
+    #     if(args.wandb and is_rank_zero):
+    #         wdb_logger.experiment.save(args.deepspeed_config_path)
+    #         wdb_logger.experiment.save("openfold/config.py")
+    if (args.gpus is not None and args.gpus > 1) or args.num_nodes > 1:
         strategy = DDPStrategy(find_unused_parameters=False,
                                cluster_environment=cluster_environment)
     else:
-        strategy = None
+        strategy = "auto"
  
-    if(args.wandb and is_rank_zero):
-        freeze_path = f"{wdb_logger.experiment.dir}/package_versions.txt"
-        os.system(f"{sys.executable} -m pip freeze > {freeze_path}")
-        wdb_logger.experiment.save(f"{freeze_path}")
+    # if(args.wandb and is_rank_zero):
+    #     freeze_path = f"{wdb_logger.experiment.dir}/package_versions.txt"
+    #     os.system(f"{sys.executable} -m pip freeze > {freeze_path}")
+    #     wdb_logger.experiment.save(f"{freeze_path}")
 
     trainer_kws = ['num_nodes', 'precision', 'max_epochs', 'log_every_n_steps',
                    'flush_logs_ever_n_steps', 'num_sanity_val_steps', 'reload_dataloaders_every_n_epochs']
@@ -438,21 +444,21 @@ def main(args):
     trainer_args.update({
         'default_root_dir': args.output_dir,
         'strategy': strategy,
-        'callbacks': callbacks,
-        'logger': loggers,
+        # 'callbacks': callbacks,
+        # 'logger': loggers,
     })
     trainer = pl.Trainer(**trainer_args)
 
 
-    if (args.resume_model_weights_only):
-        ckpt_path = None
-    else:
-        ckpt_path = args.resume_from_ckpt
+    # if (args.resume_model_weights_only):
+    #     ckpt_path = None
+    # else:
+    #     ckpt_path = args.resume_from_ckpt
 
     trainer.fit(
         model_module,
         datamodule=data_module,
-        ckpt_path=ckpt_path,
+        # ckpt_path=ckpt_path,
     )
 
 
