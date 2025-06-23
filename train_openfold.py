@@ -297,11 +297,11 @@ def main(args):
     # is_low_precision = args.precision in [
     #     "bf16-mixed", "16", "bf16", "16-true", "16-mixed", "bf16-mixed"]
 
-    config = model_config(
-        "initial_training", 
-        train=True, 
-        low_prec=True,
-    ) 
+    config = model_config()
+    #     "initial_training", 
+    #     train=True, 
+    #     low_prec=True,
+    # ) 
     # if args.experiment_config_json: 
     #     with open(args.experiment_config_json, 'r') as f:
     #         custom_config_dict = json.load(f)
@@ -442,16 +442,20 @@ def main(args):
     #     os.system(f"{sys.executable} -m pip freeze > {freeze_path}")
     #     wdb_logger.experiment.save(f"{freeze_path}")
 
-    trainer_kws = ['num_nodes', 'precision', 'max_epochs', 'log_every_n_steps',
-                   'flush_logs_ever_n_steps', 'num_sanity_val_steps', 'reload_dataloaders_every_n_epochs']
-    trainer_args = {k: v for k, v in vars(args).items() if k in trainer_kws}
-    trainer_args.update({
-        'default_root_dir': args.output_dir,
-        'strategy': strategy,
-        # 'callbacks': callbacks,
-        # 'logger': loggers,
-    })
-    trainer = pl.Trainer(**trainer_args)
+    # trainer_kws = ['num_nodes', 'precision', 'max_epochs','log_every_n_steps', 'flush_logs_ever_n_steps', 'num_sanity_val_steps', 'reload_dataloaders_every_n_epochs']
+    # trainer_args = {k: v for k, v in vars(args).items() if k in trainer_kws}
+    # trainer_args.update({
+    #     # 'default_root_dir': args.output_dir,
+    #     'strategy': strategy,
+    #     # 'callbacks': callbacks,
+    #     # 'logger': loggers,
+    # })
+    trainer = pl.Trainer(
+        strategy=strategy,
+        num_nodes=1,
+        precision="bf16",
+        max_epochs=5
+    )
 
 
     # if (args.resume_model_weights_only):
@@ -466,14 +470,14 @@ def main(args):
     )
 
 
-def bool_type(bool_str: str):
-    bool_str_lower = bool_str.lower()
-    if bool_str_lower in ('false', 'f', 'no', 'n', '0'):
-        return False
-    elif bool_str_lower in ('true', 't', 'yes', 'y', '1'):
-        return True
-    else:
-        raise ValueError(f'Cannot interpret {bool_str} as bool')
+# def bool_type(bool_str: str):
+#     bool_str_lower = bool_str.lower()
+#     if bool_str_lower in ('false', 'f', 'no', 'n', '0'):
+#         return False
+#     elif bool_str_lower in ('true', 't', 'yes', 'y', '1'):
+#         return True
+#     else:
+#         raise ValueError(f'Cannot interpret {bool_str} as bool')
 
 
 if __name__ == "__main__":
@@ -667,9 +671,9 @@ if __name__ == "__main__":
     # parser.add_argument(
     #     "--experiment_config_json", default="", help="Path to a json file with custom config values to overwrite config setting",
     # )
-    # parser.add_argument(
-    #     "--gpus", type=int, default=1, help='For determining optimal strategy and effective batch size.'
-    # )
+    parser.add_argument(
+        "--gpus", type=int, default=1, help='For determining optimal strategy and effective batch size.'
+    )
     # parser.add_argument("--mpi_plugin", action="store_true", default=False,
     #                     help="Whether to use MPI for parallele processing")
 
