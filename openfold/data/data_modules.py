@@ -27,21 +27,21 @@ class OpenFoldSingleDataset(torch.utils.data.Dataset):
     def __init__(self,
                  data_dir: str,
                  alignment_dir: str,
-                 template_mmcif_dir: str,
-                 max_template_date: str,
+                #  template_mmcif_dir: str,
+                #  max_template_date: str,
                  config: mlc.ConfigDict,
-                 chain_data_cache_path: Optional[str] = None,
-                 kalign_binary_path: str = '/usr/bin/kalign',
-                 max_template_hits: int = 4,
-                 obsolete_pdbs_file_path: Optional[str] = None,
-                 template_release_dates_cache_path: Optional[str] = None,
-                 shuffle_top_k_prefiltered: Optional[int] = None,
-                 treat_pdb_as_distillation: bool = True,
-                 filter_path: Optional[str] = None,
-                 mode: str = "train",
-                 alignment_index: Optional[Any] = None,
-                 _output_raw: bool = False,
-                 _structure_index: Optional[Any] = None,
+                #  chain_data_cache_path: Optional[str] = None,
+                #  kalign_binary_path: str = '/usr/bin/kalign',
+                #  max_template_hits: int = 4,
+                #  obsolete_pdbs_file_path: Optional[str] = None,
+                #  template_release_dates_cache_path: Optional[str] = None,
+                #  shuffle_top_k_prefiltered: Optional[int] = None,
+                #  treat_pdb_as_distillation: bool = True,
+                #  filter_path: Optional[str] = None,
+                #  mode: str = "train",
+                #  alignment_index: Optional[Any] = None,
+                #  _output_raw: bool = False,
+                #  _structure_index: Optional[Any] = None,
                  ):
         """
             Args:
@@ -87,67 +87,67 @@ class OpenFoldSingleDataset(torch.utils.data.Dataset):
         super(OpenFoldSingleDataset, self).__init__()
         self.data_dir = data_dir
 
-        self.chain_data_cache = None
-        if chain_data_cache_path is not None:
-            with open(chain_data_cache_path, "r") as fp:
-                self.chain_data_cache = json.load(fp)
-            assert isinstance(self.chain_data_cache, dict)
+        # self.chain_data_cache = None
+        # if chain_data_cache_path is not None:
+        #     with open(chain_data_cache_path, "r") as fp:
+        #         self.chain_data_cache = json.load(fp)
+        #     assert isinstance(self.chain_data_cache, dict)
 
         self.alignment_dir = alignment_dir
         self.config = config
-        self.treat_pdb_as_distillation = treat_pdb_as_distillation
-        self.mode = mode
-        self.alignment_index = alignment_index
-        self._output_raw = _output_raw
-        self._structure_index = _structure_index
+        # self.treat_pdb_as_distillation = treat_pdb_as_distillation
+        # self.mode = mode
+        # self.alignment_index = alignment_index
+        # self._output_raw = _output_raw
+        # self._structure_index = _structure_index
 
-        self.supported_exts = [".cif", ".core", ".pdb"]
+        # self.supported_exts = [".cif", ".core", ".pdb"]
 
-        valid_modes = ["train", "eval", "predict"]
-        if mode not in valid_modes:
-            raise ValueError(f'mode must be one of {valid_modes}')
+        # valid_modes = ["train", "eval", "predict"]
+        # if mode not in valid_modes:
+        #     raise ValueError(f'mode must be one of {valid_modes}')
 
-        if template_release_dates_cache_path is None:
-            logging.warning(
-                "Template release dates cache does not exist. Remember to run "
-                "scripts/generate_mmcif_cache.py before running OpenFold"
-            )
+        # if template_release_dates_cache_path is None:
+        #     logging.warning(
+        #         "Template release dates cache does not exist. Remember to run "
+        #         "scripts/generate_mmcif_cache.py before running OpenFold"
+        #     )
 
-        if alignment_index is not None:
-            self._chain_ids = list(alignment_index.keys())
-        else:
-            self._chain_ids = list(os.listdir(alignment_dir))
+        # if alignment_index is not None:
+        #     self._chain_ids = list(alignment_index.keys())
+        # else:
+        self._chain_ids = list(os.listdir(alignment_dir))
 
-        if filter_path is not None:
-            with open(filter_path, "r") as f:
-                chains_to_include = set([l.strip() for l in f.readlines()])
+        # if filter_path is not None:
+        #     with open(filter_path, "r") as f:
+        #         chains_to_include = set([l.strip() for l in f.readlines()])
 
-            self._chain_ids = [
-                c for c in self._chain_ids if c in chains_to_include
-            ]
+        #     self._chain_ids = [
+        #         c for c in self._chain_ids if c in chains_to_include
+        #     ]
 
-        if self.chain_data_cache is not None:
-            # Filter to include only chains where we have structure data
-            # (entries in chain_data_cache)
-            original_chain_ids = self._chain_ids
-            self._chain_ids = [
-                c for c in self._chain_ids if c in self.chain_data_cache
-            ]
-            if len(self._chain_ids) < len(original_chain_ids):
-                missing = [
-                    c for c in original_chain_ids
-                    if c not in self.chain_data_cache
-                ]
-                max_to_print = 10
-                missing_examples = ", ".join(missing[:max_to_print])
-                if len(missing) > max_to_print:
-                    missing_examples += ", ..."
-                logging.warning(
-                    "Removing %d alignment entries (%s) with no corresponding "
-                    "entries in chain_data_cache (%s).",
-                    len(missing),
-                    missing_examples,
-                    chain_data_cache_path)
+        # if self.chain_data_cache is not None:
+        #     # Filter to include only chains where we have structure data
+        #     # (entries in chain_data_cache)
+        #     original_chain_ids = self._chain_ids
+        #     self._chain_ids = [
+        #         c for c in self._chain_ids if c in self.chain_data_cache
+        #     ]
+        #     if len(self._chain_ids) < len(original_chain_ids):
+        #         missing = [
+        #             c for c in original_chain_ids
+        #             if c not in self.chain_data_cache
+        #         ]
+        #         max_to_print = 10
+        #         missing_examples = ", ".join(missing[:max_to_print])
+        #         if len(missing) > max_to_print:
+        #             missing_examples += ", ..."
+        #         logging.warning(
+        #             "Removing %d alignment entries (%s) with no corresponding "
+        #             "entries in chain_data_cache (%s).",
+        #             len(missing),
+        #             missing_examples,
+        #             chain_data_cache_path)
 
         self._chain_id_to_idx_dict = {
             chain: i for i, chain in enumerate(self._chain_ids)
@@ -170,8 +170,8 @@ class OpenFoldSingleDataset(torch.utils.data.Dataset):
             # template_featurizer=template_featurizer,
         )
 
-        if not self._output_raw:
-            self.feature_pipeline = feature_pipeline.FeaturePipeline(config)
+        # if not self._output_raw:
+        self.feature_pipeline = feature_pipeline.FeaturePipeline(config)
 
     def _parse_mmcif(self, path, file_id, chain_id, alignment_dir, alignment_index):
         with open(path, 'r') as f:
@@ -209,74 +209,73 @@ class OpenFoldSingleDataset(torch.utils.data.Dataset):
         alignment_dir = os.path.join(self.alignment_dir, name)
 
         alignment_index = None
-        if self.alignment_index is not None:
-            alignment_dir = self.alignment_dir
-            alignment_index = self.alignment_index[name]
+        # if self.alignment_index is not None:
+        #     alignment_dir = self.alignment_dir
+        #     alignment_index = self.alignment_index[name]
 
-        if self.mode == 'train' or self.mode == 'eval':
-            spl = name.rsplit('_', 1)
-            if len(spl) == 2:
-                file_id, chain_id = spl
-            else:
-                file_id, = spl
-                chain_id = None
+        # if self.mode == 'train' or self.mode == 'eval':
+        #     spl = name.rsplit('_', 1)
+        #     if len(spl) == 2:
+        #         file_id, chain_id = spl
+        #     else:
+        #         file_id, = spl
+        #         chain_id = None
 
-            path = os.path.join(self.data_dir, file_id)
-            if self._structure_index is not None:
-                structure_index_entry = self._structure_index[name]
-                assert (len(structure_index_entry["files"]) == 1)
-                filename, _, _ = structure_index_entry["files"][0]
-                ext = os.path.splitext(filename)[1]
-            else:
-                ext = None
-                for e in self.supported_exts:
-                    if os.path.exists(path + e):
-                        ext = e
-                        break
+        file_id, chain_id = name.rsplit('_', 1)
+        path = os.path.join(self.data_dir, file_id + ".cif")
+            # if self._structure_index is not None:
+            #     structure_index_entry = self._structure_index[name]
+            #     assert (len(structure_index_entry["files"]) == 1)
+            #     filename, _, _ = structure_index_entry["files"][0]
+            #     ext = os.path.splitext(filename)[1]
+            # else:
+            #     ext = None
+            #     for e in self.supported_exts:
+            #         if os.path.exists(path + e):
+            #             ext = e
+            #             break
 
-                if ext is None:
-                    raise ValueError("Invalid file type")
+            #     if ext is None:
+            #         raise ValueError("Invalid file type")
 
-            path += ext
-            if ext == ".cif":
-                data = self._parse_mmcif(
-                    path, file_id, chain_id, alignment_dir, alignment_index,
-                )
-            elif ext == ".core":
-                data = self.data_pipeline.process_core(
-                    path, alignment_dir, alignment_index,
-                    seqemb_mode=self.config.seqemb_mode.enabled,
-                )
-            elif ext == ".pdb":
-                structure_index = None
-                if self._structure_index is not None:
-                    structure_index = self._structure_index[name]
-                data = self.data_pipeline.process_pdb(
-                    pdb_path=path,
-                    alignment_dir=alignment_dir,
-                    is_distillation=self.treat_pdb_as_distillation,
-                    chain_id=chain_id,
-                    alignment_index=alignment_index,
-                    _structure_index=structure_index,
-                    seqemb_mode=self.config.seqemb_mode.enabled,
-                )
-            else:
-                raise ValueError("Extension branch missing")
-        else:
-            path = os.path.join(name, name + ".fasta")
-            data = self.data_pipeline.process_fasta(
-                fasta_path=path,
-                alignment_dir=alignment_dir,
-                alignment_index=alignment_index,
-                seqemb_mode=self.config.seqemb_mode.enabled,
-            )
-
-        if self._output_raw:
-            return data
-
-        feats = self.feature_pipeline.process_features(
-            data, self.mode
+            # path += ext
+            # if ext == ".cif":
+        data = self._parse_mmcif(
+            path, file_id, chain_id, alignment_dir, alignment_index,
         )
+            # elif ext == ".core":
+            #     data = self.data_pipeline.process_core(
+            #         path, alignment_dir, alignment_index,
+            #         seqemb_mode=self.config.seqemb_mode.enabled,
+            #     )
+            # elif ext == ".pdb":
+            #     structure_index = None
+            #     if self._structure_index is not None:
+            #         structure_index = self._structure_index[name]
+            #     data = self.data_pipeline.process_pdb(
+            #         pdb_path=path,
+            #         alignment_dir=alignment_dir,
+            #         is_distillation=self.treat_pdb_as_distillation,
+            #         chain_id=chain_id,
+            #         alignment_index=alignment_index,
+            #         _structure_index=structure_index,
+            #         seqemb_mode=self.config.seqemb_mode.enabled,
+            #     )
+            # else:
+            #     raise ValueError("Extension branch missing")
+        # else:
+        #     path = os.path.join(name, name + ".fasta")
+        #     data = self.data_pipeline.process_fasta(
+        #         fasta_path=path,
+        #         alignment_dir=alignment_dir,
+        #         alignment_index=alignment_index,
+        #         seqemb_mode=self.config.seqemb_mode.enabled,
+        #     )
+
+        # if self._output_raw:
+        #     return data
+
+        feats = self.feature_pipeline.process_features(data)
 
         feats["batch_idx"] = torch.tensor(
             [idx for _ in range(feats["aatype"].shape[-1])],
@@ -532,133 +531,133 @@ def all_seq_len_filter(seqs: list, minimum_number_of_residues: int) -> bool:
     return total_len >= minimum_number_of_residues
 
 
-class OpenFoldDataset(torch.utils.data.Dataset):
-    """
-        Implements the stochastic filters applied during AlphaFold's training.
-        Because samples are selected from constituent datasets randomly, the
-        length of an OpenFoldFilteredDataset is arbitrary. Samples are selected
-        and filtered once at initialization.
-    """
+# class OpenFoldDataset(torch.utils.data.Dataset):
+#     """
+#         Implements the stochastic filters applied during AlphaFold's training.
+#         Because samples are selected from constituent datasets randomly, the
+#         length of an OpenFoldFilteredDataset is arbitrary. Samples are selected
+#         and filtered once at initialization.
+#     """
 
-    def __init__(self,
-                 datasets: Union[Sequence[OpenFoldSingleDataset]],
-                 probabilities: Sequence[float],
-                 epoch_len: int,
-                 generator: torch.Generator = None,
-                 _roll_at_init: bool = True,
-                 ):
-        self.datasets = datasets
-        self.probabilities = probabilities
-        self.epoch_len = epoch_len
-        self.generator = generator
+#     def __init__(self,
+#                  datasets: Union[Sequence[OpenFoldSingleDataset]],
+#                  probabilities: Sequence[float],
+#                  epoch_len: int,
+#                  generator: torch.Generator = None,
+#                  _roll_at_init: bool = True,
+#                  ):
+#         self.datasets = datasets
+#         self.probabilities = probabilities
+#         self.epoch_len = epoch_len
+#         self.generator = generator
 
-        self._samples = [self.looped_samples(i) for i in range(len(self.datasets))]
-        if _roll_at_init:
-            self.reroll()
+#         self._samples = [self.looped_samples(i) for i in range(len(self.datasets))]
+#         if _roll_at_init:
+#             self.reroll()
 
-    @staticmethod
-    def deterministic_train_filter(
-        cache_entry: Any,
-        max_resolution: float = 9.,
-        max_single_aa_prop: float = 0.8,
-        *args, **kwargs
-    ) -> bool:
-        # Hard filters
-        resolution = cache_entry.get("resolution", None)
-        seqs = [cache_entry["seq"]]
+#     @staticmethod
+#     def deterministic_train_filter(
+#         cache_entry: Any,
+#         max_resolution: float = 9.,
+#         max_single_aa_prop: float = 0.8,
+#         *args, **kwargs
+#     ) -> bool:
+#         # Hard filters
+#         resolution = cache_entry.get("resolution", None)
+#         seqs = [cache_entry["seq"]]
 
-        return all([resolution_filter(resolution=resolution,
-                                      max_resolution=max_resolution),
-                    aa_count_filter(seqs=seqs,
-                                    max_single_aa_prop=max_single_aa_prop)])
+#         return all([resolution_filter(resolution=resolution,
+#                                       max_resolution=max_resolution),
+#                     aa_count_filter(seqs=seqs,
+#                                     max_single_aa_prop=max_single_aa_prop)])
 
-    @staticmethod
-    def get_stochastic_train_filter_prob(
-        cache_entry: Any,
-        *args, **kwargs
-    ) -> float:
-        # Stochastic filters
-        probabilities = []
+#     @staticmethod
+#     def get_stochastic_train_filter_prob(
+#         cache_entry: Any,
+#         *args, **kwargs
+#     ) -> float:
+#         # Stochastic filters
+#         probabilities = []
 
-        cluster_size = cache_entry.get("cluster_size", None)
-        if cluster_size is not None and cluster_size > 0:
-            probabilities.append(1 / cluster_size)
+#         cluster_size = cache_entry.get("cluster_size", None)
+#         if cluster_size is not None and cluster_size > 0:
+#             probabilities.append(1 / cluster_size)
 
-        chain_length = len(cache_entry["seq"])
-        probabilities.append((1 / 512) * (max(min(chain_length, 512), 256)))
+#         chain_length = len(cache_entry["seq"])
+#         probabilities.append((1 / 512) * (max(min(chain_length, 512), 256)))
 
-        # Risk of underflow here?
-        out = 1
-        for p in probabilities:
-            out *= p
+#         # Risk of underflow here?
+#         out = 1
+#         for p in probabilities:
+#             out *= p
 
-        return out
+#         return out
 
-    def looped_shuffled_dataset_idx(self, dataset_len):
-        while True:
-            # Uniformly shuffle each dataset's indices
-            weights = [1. for _ in range(dataset_len)]
-            shuf = torch.multinomial(
-                torch.tensor(weights),
-                num_samples=dataset_len,
-                replacement=False,
-                generator=self.generator,
-            )
-            for idx in shuf:
-                yield idx
+#     def looped_shuffled_dataset_idx(self, dataset_len):
+#         while True:
+#             # Uniformly shuffle each dataset's indices
+#             weights = [1. for _ in range(dataset_len)]
+#             shuf = torch.multinomial(
+#                 torch.tensor(weights),
+#                 num_samples=dataset_len,
+#                 replacement=False,
+#                 generator=self.generator,
+#             )
+#             for idx in shuf:
+#                 yield idx
 
-    def looped_samples(self, dataset_idx):
-        max_cache_len = int(self.epoch_len * self.probabilities[dataset_idx])
-        dataset = self.datasets[dataset_idx]
-        idx_iter = self.looped_shuffled_dataset_idx(len(dataset))
-        chain_data_cache = dataset.chain_data_cache
-        while True:
-            weights = []
-            idx = []
-            for _ in range(max_cache_len):
-                candidate_idx = next(idx_iter)
-                chain_id = dataset.idx_to_chain_id(candidate_idx)
-                chain_data_cache_entry = chain_data_cache[chain_id]
-                if not self.deterministic_train_filter(chain_data_cache_entry):
-                    continue
+#     def looped_samples(self, dataset_idx):
+#         max_cache_len = int(self.epoch_len * self.probabilities[dataset_idx])
+#         dataset = self.datasets[dataset_idx]
+#         idx_iter = self.looped_shuffled_dataset_idx(len(dataset))
+#         chain_data_cache = dataset.chain_data_cache
+#         while True:
+#             weights = []
+#             idx = []
+#             for _ in range(max_cache_len):
+#                 candidate_idx = next(idx_iter)
+#                 chain_id = dataset.idx_to_chain_id(candidate_idx)
+#                 chain_data_cache_entry = chain_data_cache[chain_id]
+#                 if not self.deterministic_train_filter(chain_data_cache_entry):
+#                     continue
 
-                p = self.get_stochastic_train_filter_prob(
-                    chain_data_cache_entry,
-                )
-                weights.append([1. - p, p])
-                idx.append(candidate_idx)
+#                 p = self.get_stochastic_train_filter_prob(
+#                     chain_data_cache_entry,
+#                 )
+#                 weights.append([1. - p, p])
+#                 idx.append(candidate_idx)
 
-            samples = torch.multinomial(
-                torch.tensor(weights),
-                num_samples=1,
-                generator=self.generator,
-            )
-            samples = samples.squeeze()
+#             samples = torch.multinomial(
+#                 torch.tensor(weights),
+#                 num_samples=1,
+#                 generator=self.generator,
+#             )
+#             samples = samples.squeeze()
 
-            cache = [i for i, s in zip(idx, samples) if s]
+#             cache = [i for i, s in zip(idx, samples) if s]
 
-            for datapoint_idx in cache:
-                yield datapoint_idx
+#             for datapoint_idx in cache:
+#                 yield datapoint_idx
 
-    def __getitem__(self, idx):
-        dataset_idx, datapoint_idx = self.datapoints[idx]
-        return self.datasets[dataset_idx][datapoint_idx]
+#     def __getitem__(self, idx):
+#         dataset_idx, datapoint_idx = self.datapoints[idx]
+#         return self.datasets[dataset_idx][datapoint_idx]
 
-    def __len__(self):
-        return self.epoch_len
+#     def __len__(self):
+#         return self.epoch_len
 
-    def reroll(self):
-        dataset_choices = torch.multinomial(
-            torch.tensor(self.probabilities),
-            num_samples=self.epoch_len,
-            replacement=True,
-            generator=self.generator,
-        )
-        self.datapoints = []
-        for dataset_idx in dataset_choices:
-            samples = self._samples[dataset_idx]
-            datapoint_idx = next(samples)
-            self.datapoints.append((dataset_idx, datapoint_idx))
+#     def reroll(self):
+#         dataset_choices = torch.multinomial(
+#             torch.tensor(self.probabilities),
+#             num_samples=self.epoch_len,
+#             replacement=True,
+#             generator=self.generator,
+#         )
+#         self.datapoints = []
+#         for dataset_idx in dataset_choices:
+#             samples = self._samples[dataset_idx]
+#             datapoint_idx = next(samples)
+#             self.datapoints.append((dataset_idx, datapoint_idx))
 
 
 # class OpenFoldMultimerDataset(OpenFoldDataset):
@@ -848,197 +847,213 @@ class OpenFoldDataLoader(torch.utils.data.DataLoader):
 class OpenFoldDataModule(pl.LightningDataModule):
     def __init__(self,
                  config: mlc.ConfigDict,
-                 template_mmcif_dir: str,
-                 max_template_date: str,
+                #  template_mmcif_dir: str,
+                #  max_template_date: str,
                  train_data_dir: Optional[str] = None,
                  train_alignment_dir: Optional[str] = None,
-                 train_chain_data_cache_path: Optional[str] = None,
-                 distillation_data_dir: Optional[str] = None,
-                 distillation_alignment_dir: Optional[str] = None,
-                 distillation_chain_data_cache_path: Optional[str] = None,
-                 val_data_dir: Optional[str] = None,
-                 val_alignment_dir: Optional[str] = None,
-                 predict_data_dir: Optional[str] = None,
-                 predict_alignment_dir: Optional[str] = None,
-                 kalign_binary_path: str = '/usr/bin/kalign',
-                 train_filter_path: Optional[str] = None,
-                 distillation_filter_path: Optional[str] = None,
-                 obsolete_pdbs_file_path: Optional[str] = None,
-                 template_release_dates_cache_path: Optional[str] = None,
+                #  train_chain_data_cache_path: Optional[str] = None,
+                #  distillation_data_dir: Optional[str] = None,
+                #  distillation_alignment_dir: Optional[str] = None,
+                #  distillation_chain_data_cache_path: Optional[str] = None,
+                #  val_data_dir: Optional[str] = None,
+                #  val_alignment_dir: Optional[str] = None,
+                #  predict_data_dir: Optional[str] = None,
+                #  predict_alignment_dir: Optional[str] = None,
+                #  kalign_binary_path: str = '/usr/bin/kalign',
+                #  train_filter_path: Optional[str] = None,
+                #  distillation_filter_path: Optional[str] = None,
+                #  obsolete_pdbs_file_path: Optional[str] = None,
+                #  template_release_dates_cache_path: Optional[str] = None,
                  batch_seed: Optional[int] = None,
-                 train_epoch_len: int = 50000,
-                 _distillation_structure_index_path: Optional[str] = None,
-                 alignment_index_path: Optional[str] = None,
-                 distillation_alignment_index_path: Optional[str] = None,
-                 **kwargs
+                #  train_epoch_len: int = 50000,
+                #  _distillation_structure_index_path: Optional[str] = None,
+                #  alignment_index_path: Optional[str] = None,
+                #  distillation_alignment_index_path: Optional[str] = None,
+                #  **kwargs
                  ):
         super(OpenFoldDataModule, self).__init__()
 
         self.config = config
-        self.template_mmcif_dir = template_mmcif_dir
-        self.max_template_date = max_template_date
+        # self.template_mmcif_dir = template_mmcif_dir
+        # self.max_template_date = max_template_date
         self.train_data_dir = train_data_dir
         self.train_alignment_dir = train_alignment_dir
-        self.train_chain_data_cache_path = train_chain_data_cache_path
-        self.distillation_data_dir = distillation_data_dir
-        self.distillation_alignment_dir = distillation_alignment_dir
-        self.distillation_chain_data_cache_path = (
-            distillation_chain_data_cache_path
-        )
-        self.val_data_dir = val_data_dir
-        self.val_alignment_dir = val_alignment_dir
-        self.predict_data_dir = predict_data_dir
-        self.predict_alignment_dir = predict_alignment_dir
-        self.kalign_binary_path = kalign_binary_path
-        self.train_filter_path = train_filter_path
-        self.distillation_filter_path = distillation_filter_path
-        self.template_release_dates_cache_path = (
-            template_release_dates_cache_path
-        )
-        self.obsolete_pdbs_file_path = obsolete_pdbs_file_path
+        # self.train_chain_data_cache_path = train_chain_data_cache_path
+        # self.distillation_data_dir = distillation_data_dir
+        # self.distillation_alignment_dir = distillation_alignment_dir
+        # self.distillation_chain_data_cache_path = (
+        #     distillation_chain_data_cache_path
+        # )
+        # self.val_data_dir = val_data_dir
+        # self.val_alignment_dir = val_alignment_dir
+        # self.predict_data_dir = predict_data_dir
+        # self.predict_alignment_dir = predict_alignment_dir
+        # self.kalign_binary_path = kalign_binary_path
+        # self.train_filter_path = train_filter_path
+        # self.distillation_filter_path = distillation_filter_path
+        # self.template_release_dates_cache_path = (
+        #     template_release_dates_cache_path
+        # )
+        # self.obsolete_pdbs_file_path = obsolete_pdbs_file_path
         self.batch_seed = batch_seed
-        self.train_epoch_len = train_epoch_len
+        # self.train_epoch_len = train_epoch_len
 
-        if self.train_data_dir is None and self.predict_data_dir is None:
-            raise ValueError(
-                'At least one of train_data_dir or predict_data_dir must be '
-                'specified'
-            )
+        # if self.train_data_dir is None and self.predict_data_dir is None:
+        #     raise ValueError(
+        #         'At least one of train_data_dir or predict_data_dir must be '
+        #         'specified'
+        #     )
 
-        self.training_mode = self.train_data_dir is not None
+        # self.training_mode = self.train_data_dir is not None
 
-        if self.training_mode and train_alignment_dir is None:
-            raise ValueError(
-                'In training mode, train_alignment_dir must be specified'
-            )
-        elif not self.training_mode and predict_alignment_dir is None:
-            raise ValueError(
-                'In inference mode, predict_alignment_dir must be specified'
-            )
-        elif val_data_dir is not None and val_alignment_dir is None:
-            raise ValueError(
-                'If val_data_dir is specified, val_alignment_dir must '
-                'be specified as well'
-            )
+        # if self.training_mode and train_alignment_dir is None:
+        #     raise ValueError(
+        #         'In training mode, train_alignment_dir must be specified'
+        #     )
+        # elif not self.training_mode and predict_alignment_dir is None:
+        #     raise ValueError(
+        #         'In inference mode, predict_alignment_dir must be specified'
+        #     )
+        # elif val_data_dir is not None and val_alignment_dir is None:
+        #     raise ValueError(
+        #         'If val_data_dir is specified, val_alignment_dir must '
+        #         'be specified as well'
+        #     )
 
         # An ad-hoc measure for our particular filesystem restrictions
-        self._distillation_structure_index = None
-        if _distillation_structure_index_path is not None:
-            with open(_distillation_structure_index_path, "r") as fp:
-                self._distillation_structure_index = json.load(fp)
+        # self._distillation_structure_index = None
+        # if _distillation_structure_index_path is not None:
+        #     with open(_distillation_structure_index_path, "r") as fp:
+        #         self._distillation_structure_index = json.load(fp)
 
-        self.alignment_index = None
-        if alignment_index_path is not None:
-            with open(alignment_index_path, "r") as fp:
-                self.alignment_index = json.load(fp)
+        # self.alignment_index = None
+        # if alignment_index_path is not None:
+        #     with open(alignment_index_path, "r") as fp:
+        #         self.alignment_index = json.load(fp)
 
-        self.distillation_alignment_index = None
-        if distillation_alignment_index_path is not None:
-            with open(distillation_alignment_index_path, "r") as fp:
-                self.distillation_alignment_index = json.load(fp)
+        # self.distillation_alignment_index = None
+        # if distillation_alignment_index_path is not None:
+        #     with open(distillation_alignment_index_path, "r") as fp:
+        #         self.distillation_alignment_index = json.load(fp)
 
     def setup(self, stage=None):
+        self.train_dataset = OpenFoldSingleDataset(
+            # template_mmcif_dir=self.template_mmcif_dir,
+            # max_template_date=self.max_template_date,
+            config=self.config,
+            # kalign_binary_path=self.kalign_binary_path,
+            # template_release_dates_cache_path=self.template_release_dates_cache_path,
+            # obsolete_pdbs_file_path=self.obsolete_pdbs_file_path,
+            data_dir=self.train_data_dir,
+            # chain_data_cache_path=self.train_chain_data_cache_path,
+            alignment_dir=self.train_alignment_dir,
+            # filter_path=self.train_filter_path,
+            # max_template_hits=self.config.train.max_template_hits,
+            # shuffle_top_k_prefiltered=self.config.train.shuffle_top_k_prefiltered,
+            # treat_pdb_as_distillation=False,
+            # mode="train",
+            # alignment_index=self.alignment_index,
+        )
         # Most of the arguments are the same for the three datasets 
-        dataset_gen = partial(OpenFoldSingleDataset,
-                              template_mmcif_dir=self.template_mmcif_dir,
-                              max_template_date=self.max_template_date,
-                              config=self.config,
-                              kalign_binary_path=self.kalign_binary_path,
-                              template_release_dates_cache_path=self.template_release_dates_cache_path,
-                              obsolete_pdbs_file_path=self.obsolete_pdbs_file_path)
+        # dataset_gen = partial(OpenFoldSingleDataset,
+        #                       template_mmcif_dir=self.template_mmcif_dir,
+        #                       max_template_date=self.max_template_date,
+        #                       config=self.config,
+        #                       kalign_binary_path=self.kalign_binary_path,
+        #                       template_release_dates_cache_path=self.template_release_dates_cache_path,
+        #                       obsolete_pdbs_file_path=self.obsolete_pdbs_file_path)
 
-        if self.training_mode:
-            train_dataset = dataset_gen(
-                data_dir=self.train_data_dir,
-                chain_data_cache_path=self.train_chain_data_cache_path,
-                alignment_dir=self.train_alignment_dir,
-                filter_path=self.train_filter_path,
-                max_template_hits=self.config.train.max_template_hits,
-                shuffle_top_k_prefiltered=self.config.train.shuffle_top_k_prefiltered,
-                treat_pdb_as_distillation=False,
-                mode="train",
-                alignment_index=self.alignment_index,
-            )
+        # if self.training_mode:
+        #     train_dataset = dataset_gen(
+        #         data_dir=self.train_data_dir,
+        #         chain_data_cache_path=self.train_chain_data_cache_path,
+        #         alignment_dir=self.train_alignment_dir,
+        #         filter_path=self.train_filter_path,
+        #         max_template_hits=self.config.train.max_template_hits,
+        #         shuffle_top_k_prefiltered=self.config.train.shuffle_top_k_prefiltered,
+        #         treat_pdb_as_distillation=False,
+        #         mode="train",
+        #         alignment_index=self.alignment_index,
+        #     )
 
-            distillation_dataset = None
-            if self.distillation_data_dir is not None:
-                distillation_dataset = dataset_gen(
-                    data_dir=self.distillation_data_dir,
-                    chain_data_cache_path=self.distillation_chain_data_cache_path,
-                    alignment_dir=self.distillation_alignment_dir,
-                    filter_path=self.distillation_filter_path,
-                    max_template_hits=self.config.train.max_template_hits,
-                    treat_pdb_as_distillation=True,
-                    mode="train",
-                    alignment_index=self.distillation_alignment_index,
-                    _structure_index=self._distillation_structure_index,
-                )
+        #     distillation_dataset = None
+        #     if self.distillation_data_dir is not None:
+        #         distillation_dataset = dataset_gen(
+        #             data_dir=self.distillation_data_dir,
+        #             chain_data_cache_path=self.distillation_chain_data_cache_path,
+        #             alignment_dir=self.distillation_alignment_dir,
+        #             filter_path=self.distillation_filter_path,
+        #             max_template_hits=self.config.train.max_template_hits,
+        #             treat_pdb_as_distillation=True,
+        #             mode="train",
+        #             alignment_index=self.distillation_alignment_index,
+        #             _structure_index=self._distillation_structure_index,
+        #         )
 
-                d_prob = self.config.train.distillation_prob
+        #         d_prob = self.config.train.distillation_prob
 
-            if distillation_dataset is not None:
-                datasets = [train_dataset, distillation_dataset]
-                d_prob = self.config.train.distillation_prob
-                probabilities = [1. - d_prob, d_prob]
-            else:
-                datasets = [train_dataset]
-                probabilities = [1.]
+        #     if distillation_dataset is not None:
+        #         datasets = [train_dataset, distillation_dataset]
+        #         d_prob = self.config.train.distillation_prob
+        #         probabilities = [1. - d_prob, d_prob]
+        #     else:
+        #         datasets = [train_dataset]
+        #         probabilities = [1.]
 
-            generator = None
-            if self.batch_seed is not None:
-                generator = torch.Generator()
-                generator = generator.manual_seed(self.batch_seed + 1)
+        #     generator = None
+        #     if self.batch_seed is not None:
+        #         generator = torch.Generator()
+        #         generator = generator.manual_seed(self.batch_seed + 1)
 
-            self.train_dataset = OpenFoldDataset(
-                datasets=datasets,
-                probabilities=probabilities,
-                epoch_len=self.train_epoch_len,
-                generator=generator,
-                _roll_at_init=False,
-            )
+            # self.train_dataset = OpenFoldDataset(
+            #     datasets=datasets,
+            #     probabilities=probabilities,
+            #     epoch_len=self.train_epoch_len,
+            #     generator=generator,
+            #     _roll_at_init=False,
+            # )
 
-            if self.val_data_dir is not None:
-                self.eval_dataset = dataset_gen(
-                    data_dir=self.val_data_dir,
-                    alignment_dir=self.val_alignment_dir,
-                    filter_path=None,
-                    max_template_hits=self.config.eval.max_template_hits,
-                    mode="eval",
-                )
-            else:
-                self.eval_dataset = None
-        else:
-            self.predict_dataset = dataset_gen(
-                data_dir=self.predict_data_dir,
-                alignment_dir=self.predict_alignment_dir,
-                filter_path=None,
-                max_template_hits=self.config.predict.max_template_hits,
-                mode="predict",
-            )
+            # if self.val_data_dir is not None:
+            #     self.eval_dataset = dataset_gen(
+            #         data_dir=self.val_data_dir,
+            #         alignment_dir=self.val_alignment_dir,
+            #         filter_path=None,
+            #         max_template_hits=self.config.eval.max_template_hits,
+            #         mode="eval",
+            #     )
+            # else:
+            #     self.eval_dataset = None
+        # else:
+        #     self.predict_dataset = dataset_gen(
+        #         data_dir=self.predict_data_dir,
+        #         alignment_dir=self.predict_alignment_dir,
+        #         filter_path=None,
+        #         max_template_hits=self.config.predict.max_template_hits,
+        #         mode="predict",
+        #     )
 
-    def _gen_dataloader(self, stage=None):
+    def _gen_dataloader(self):
         generator = None
         if self.batch_seed is not None:
             generator = torch.Generator()
             generator = generator.manual_seed(self.batch_seed)
 
-        if stage == "train":
-            dataset = self.train_dataset
-            # Filter the dataset, if necessary
-            dataset.reroll()
-        elif stage == "eval":
-            dataset = self.eval_dataset
-        elif stage == "predict":
-            dataset = self.predict_dataset
-        else:
-            raise ValueError("Invalid stage")
+        # if stage == "train":
+        #     dataset = self.train_dataset
+        #     # Filter the dataset, if necessary
+        #     dataset.reroll()
+        # elif stage == "eval":
+        #     dataset = self.eval_dataset
+        # elif stage == "predict":
+        #     dataset = self.predict_dataset
+        # else:
+        #     raise ValueError("Invalid stage")
 
         batch_collator = OpenFoldBatchCollator()
 
         dl = OpenFoldDataLoader(
-            dataset,
+            self.train_dataset,
             config=self.config,
-            stage=stage,
             generator=generator,
             batch_size=self.config.data_module.data_loaders.batch_size,
             num_workers=self.config.data_module.data_loaders.num_workers,
@@ -1048,15 +1063,16 @@ class OpenFoldDataModule(pl.LightningDataModule):
         return dl
 
     def train_dataloader(self):
-        return self._gen_dataloader("train")
+        return self._gen_dataloader()
 
     def val_dataloader(self):
-        if self.eval_dataset is not None:
-            return self._gen_dataloader("eval")
+        # if self.eval_dataset is not None:
+        #     return self._gen_dataloader("eval")
         return [] 
 
     def predict_dataloader(self):
-        return self._gen_dataloader("predict")
+        # return self._gen_dataloader("predict")
+        return []
 
 
 # class OpenFoldMultimerDataModule(OpenFoldDataModule):
