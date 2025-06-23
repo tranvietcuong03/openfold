@@ -1,13 +1,12 @@
 import torch
 import torch.nn as nn
 
-from vinafold.model.embedders import (
-    InputEmbedder,
-    RecyclingEmbedder,
-)
-from vinafold.model.evoformer import EvoformerStack
+from vinafold.model.input_embedder import InputEmbedder
+from vinafold.model.recycling_embeddrt import RecyclingEmbedder
+from vinafold.model.evoformer.evoformer import EvoformerStack
 from vinafold.model.heads import AuxiliaryHeads
 from vinafold.model.structure_module import StructureModule
+
 import vinafold.np.residue_constants as residue_constants
 from vinafold.utils.feats import (
     pseudo_beta_fn,

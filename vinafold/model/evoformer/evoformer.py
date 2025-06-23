@@ -21,20 +21,20 @@ from functools import partial
 from abc import ABC, abstractmethod
 
 from vinafold.model.primitives import Linear, LayerNorm
-from vinafold.model.dropout import DropoutRowwise, DropoutColumnwise
-from vinafold.model.msa import (
+from vinafold.model.evoformer.dropout import DropoutRowwise, DropoutColumnwise
+from vinafold.model.evoformer.msa import (
     MSARowAttentionWithPairBias,
     MSAColumnAttention,
     # MSAColumnGlobalAttention,
 )
-from vinafold.model.outer_product_mean import OuterProductMean
-from vinafold.model.pair_transition import PairTransition
-from vinafold.model.triangular_attention import (
+from vinafold.model.evoformer.outer_product_mean import OuterProductMean
+from vinafold.model.evoformer.pair_transition import PairTransition
+from vinafold.model.evoformer.triangular_attention import (
     TriangleAttention,
     # TriangleAttentionStartingNode,
     # TriangleAttentionEndingNode,
 )
-from vinafold.model.triangular_multiplicative_update import (
+from vinafold.model.evoformer.triangular_multiplicative_update import (
     TriangleMultiplicationOutgoing,
     TriangleMultiplicationIncoming,
     # FusedTriangleMultiplicationIncoming,
