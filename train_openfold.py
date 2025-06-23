@@ -13,7 +13,7 @@ import pytorch_lightning as pl
 # from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 # from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies import DDPStrategy #, DeepSpeedStrategy
-from pytorch_lightning.plugins.environments import MPIEnvironment
+# from pytorch_lightning.plugins.environments import MPIEnvironment
 from pytorch_lightning import seed_everything
 import torch
 # import wandb
@@ -22,7 +22,7 @@ import torch
 from openfold.config import model_config
 from openfold.data.data_modules import OpenFoldDataModule #, OpenFoldMultimerDataModule
 from openfold.model.model import AlphaFold
-from openfold.model.torchscript import script_preset_
+# from openfold.model.torchscript import script_preset_
 # from openfold.np import residue_constants
 # from openfold.utils.callbacks import (
 #     EarlyStoppingVerbose,
@@ -298,7 +298,7 @@ def main(args):
     #     "bf16-mixed", "16", "bf16", "16-true", "16-mixed", "bf16-mixed"]
 
     config = model_config(
-        args.config_preset, 
+        "initial_training", 
         train=True, 
         low_prec=True,
     ) 
@@ -345,8 +345,8 @@ def main(args):
     #         f"Successfully loaded JAX parameters at {args.resume_from_jax_params}...")
 
     # TorchScript components of the model
-    if (args.script_modules):
-        script_preset_(model_module)
+    # if (args.script_modules):
+    #     script_preset_(model_module)
 
     # if "multimer" in args.config_preset:
     #     data_module = OpenFoldMultimerDataModule(
@@ -423,7 +423,7 @@ def main(args):
     #     )
     #     loggers.append(wdb_logger)
 
-    cluster_environment = MPIEnvironment() if args.mpi_plugin else None
+    # cluster_environment = MPIEnvironment() if args.mpi_plugin else None
     # if(args.deepspeed_config_path is not None):
     #     strategy = DeepSpeedStrategy(
     #         config=args.deepspeed_config_path,
@@ -433,7 +433,7 @@ def main(args):
     #         wdb_logger.experiment.save(args.deepspeed_config_path)
     #         wdb_logger.experiment.save("openfold/config.py")
     if (args.gpus is not None and args.gpus > 1) or args.num_nodes > 1:
-        strategy = DDPStrategy(find_unused_parameters=False, cluster_environment=cluster_environment)
+        strategy = DDPStrategy(find_unused_parameters=False) #, cluster_environment=cluster_environment)
     else:
         strategy = "auto"
  
@@ -486,160 +486,165 @@ if __name__ == "__main__":
         "train_alignment_dir", type=str,
         help="Directory containing precomputed training alignments"
     )
+
+    # parser.add_argument(
+    #     "template_mmcif_dir", type=str,
+    #     help="Directory containing mmCIF files to search for templates"
+    # )
+    # parser.add_argument(
+    #     "output_dir", type=str,
+    #     help='''Directory in which to output checkpoints, logs, etc. Ignored
+    #             if not on rank 0'''
+    # )
+    # parser.add_argument(
+    #     "max_template_date", type=str,
+    #     help='''Cutoff for all templates. In training mode, templates are also 
+    #             filtered by the release date of the target'''
+    # )
+    # parser.add_argument(
+    #     "--train_mmcif_data_cache_path", type=str, default=None,
+    #     help="Path to the json file which records all the information of mmcif structures used during training"
+    # )
+    # parser.add_argument(
+    #     "--use_single_seq_mode", type=str, default=False,
+    #     help="Use single sequence embeddings instead of MSAs."
+    # )
+    # parser.add_argument(
+    #     "--distillation_data_dir", type=str, default=None,
+    #     help="Directory containing training PDB files"
+    # )
+    # parser.add_argument(
+    #     "--distillation_alignment_dir", type=str, default=None,
+    #     help="Directory containing precomputed distillation alignments"
+    # )
+    # parser.add_argument(
+    #     "--val_data_dir", type=str, default=None,
+    #     help="Directory containing validation mmCIF files"
+    # )
+    # parser.add_argument(
+    #     "--val_alignment_dir", type=str, default=None,
+    #     help="Directory containing precomputed validation alignments"
+    # )
+    # parser.add_argument(
+    #     "--val_mmcif_data_cache_path", type=str, default=None,
+    #     help="path to the json file which records all the information of mmcif structures used during validation"
+    # )
+    # parser.add_argument(
+    #     "--kalign_binary_path", type=str, default='/usr/bin/kalign',
+    #     help="Path to the kalign binary"
+    # )
+    # parser.add_argument(
+    #     "--train_filter_path", type=str, default=None,
+    #     help='''Optional path to a text file containing names of training
+    #             examples to include, one per line. Used to filter the training 
+    #             set'''
+    # )
+    # parser.add_argument(
+    #     "--distillation_filter_path", type=str, default=None,
+    #     help="""See --train_filter_path"""
+    # )
+    # parser.add_argument(
+    #     "--obsolete_pdbs_file_path", type=str, default=None,
+    #     help="""Path to obsolete.dat file containing list of obsolete PDBs and 
+    #          their replacements."""
+    # )
+    # parser.add_argument(
+    #     "--template_release_dates_cache_path", type=str, default=None,
+    #     help="""Output of scripts/generate_mmcif_cache.py run on template mmCIF
+    #             files."""
+    # )
+    # parser.add_argument(
+    #     "--use_small_bfd", type=bool_type, default=False,
+    #     help="Whether to use a reduced version of the BFD database"
+    # )
+
+    # here
     parser.add_argument(
-        "template_mmcif_dir", type=str,
-        help="Directory containing mmCIF files to search for templates"
-    )
-    parser.add_argument(
-        "output_dir", type=str,
-        help='''Directory in which to output checkpoints, logs, etc. Ignored
-                if not on rank 0'''
-    )
-    parser.add_argument(
-        "max_template_date", type=str,
-        help='''Cutoff for all templates. In training mode, templates are also 
-                filtered by the release date of the target'''
-    )
-    parser.add_argument(
-        "--train_mmcif_data_cache_path", type=str, default=None,
-        help="Path to the json file which records all the information of mmcif structures used during training"
-    )
-    parser.add_argument(
-        "--use_single_seq_mode", type=str, default=False,
-        help="Use single sequence embeddings instead of MSAs."
-    )
-    parser.add_argument(
-        "--distillation_data_dir", type=str, default=None,
-        help="Directory containing training PDB files"
-    )
-    parser.add_argument(
-        "--distillation_alignment_dir", type=str, default=None,
-        help="Directory containing precomputed distillation alignments"
-    )
-    parser.add_argument(
-        "--val_data_dir", type=str, default=None,
-        help="Directory containing validation mmCIF files"
-    )
-    parser.add_argument(
-        "--val_alignment_dir", type=str, default=None,
-        help="Directory containing precomputed validation alignments"
-    )
-    parser.add_argument(
-        "--val_mmcif_data_cache_path", type=str, default=None,
-        help="path to the json file which records all the information of mmcif structures used during validation"
-    )
-    parser.add_argument(
-        "--kalign_binary_path", type=str, default='/usr/bin/kalign',
-        help="Path to the kalign binary"
-    )
-    parser.add_argument(
-        "--train_filter_path", type=str, default=None,
-        help='''Optional path to a text file containing names of training
-                examples to include, one per line. Used to filter the training 
-                set'''
-    )
-    parser.add_argument(
-        "--distillation_filter_path", type=str, default=None,
-        help="""See --train_filter_path"""
-    )
-    parser.add_argument(
-        "--obsolete_pdbs_file_path", type=str, default=None,
-        help="""Path to obsolete.dat file containing list of obsolete PDBs and 
-             their replacements."""
-    )
-    parser.add_argument(
-        "--template_release_dates_cache_path", type=str, default=None,
-        help="""Output of scripts/generate_mmcif_cache.py run on template mmCIF
-                files."""
-    )
-    parser.add_argument(
-        "--use_small_bfd", type=bool_type, default=False,
-        help="Whether to use a reduced version of the BFD database"
-    )
-    parser.add_argument(
-        "--seed", type=int, default=None,
+        "--seed", type=int, default=42,
         help="Random seed"
     )
-    parser.add_argument(
-        "--deepspeed_config_path", type=str, default=None,
-        help="Path to DeepSpeed config. If not provided, DeepSpeed is disabled"
-    )
-    parser.add_argument(
-        "--checkpoint_every_epoch", action="store_true", default=False,
-        help="""Whether to checkpoint at the end of every training epoch"""
-    )
-    parser.add_argument(
-        "--early_stopping", type=bool_type, default=False,
-        help="Whether to stop training when validation loss fails to decrease"
-    )
-    parser.add_argument(
-        "--min_delta", type=float, default=0,
-        help="""The smallest decrease in validation loss that counts as an 
-                improvement for the purposes of early stopping"""
-    )
-    parser.add_argument(
-        "--patience", type=int, default=3,
-        help="Early stopping patience"
-    )
-    parser.add_argument(
-        "--resume_from_ckpt", type=str, default=None,
-        help="Path to a model checkpoint from which to restore training state"
-    )
-    parser.add_argument(
-        "--resume_model_weights_only", type=bool_type, default=False,
-        help="Whether to load just model weights as opposed to training state"
-    )
-    parser.add_argument(
-        "--resume_from_jax_params", type=str, default=None,
-        help="""Path to an .npz JAX parameter file with which to initialize the model"""
-    )
-    parser.add_argument(
-        "--log_performance", type=bool_type, default=False,
-        help="Measure performance"
-    )
-    parser.add_argument(
-        "--wandb", action="store_true", default=False,
-        help="Whether to log metrics to Weights & Biases"
-    )
-    parser.add_argument(
-        "--experiment_name", type=str, default=None,
-        help="Name of the current experiment. Used for wandb logging"
-    )
-    parser.add_argument(
-        "--wandb_id", type=str, default=None,
-        help="ID of a previous run to be resumed"
-    )
-    parser.add_argument(
-        "--wandb_project", type=str, default=None,
-        help="Name of the wandb project to which this run will belong"
-    )
-    parser.add_argument(
-        "--wandb_entity", type=str, default=None,
-        help="wandb username or team name to which runs are attributed"
-    )
-    parser.add_argument(
-        "--script_modules", type=bool_type, default=False,
-        help="Whether to TorchScript eligible components of them model"
-    )
-    parser.add_argument(
-        "--train_chain_data_cache_path", type=str, default=None,
-    )
-    parser.add_argument(
-        "--distillation_chain_data_cache_path", type=str, default=None,
-    )
-    parser.add_argument(
-        "--train_epoch_len", type=int, default=10000,
-        help=(
-            "The virtual length of each training epoch. Stochastic filtering "
-            "of training data means that training datasets have no "
-            "well-defined length. This virtual length affects frequency of "
-            "validation & checkpointing (by default, one of each per epoch)."
-        )
-    )
-    parser.add_argument(
-        "--log_lr", action="store_true", default=False,
-        help="Whether to log the actual learning rate"
-    )
+    # parser.add_argument(
+    #     "--deepspeed_config_path", type=str, default=None,
+    #     help="Path to DeepSpeed config. If not provided, DeepSpeed is disabled"
+    # )
+    # parser.add_argument(
+    #     "--checkpoint_every_epoch", action="store_true", default=False,
+    #     help="""Whether to checkpoint at the end of every training epoch"""
+    # )
+    # parser.add_argument(
+    #     "--early_stopping", type=bool_type, default=False,
+    #     help="Whether to stop training when validation loss fails to decrease"
+    # )
+    # parser.add_argument(
+    #     "--min_delta", type=float, default=0,
+    #     help="""The smallest decrease in validation loss that counts as an 
+    #             improvement for the purposes of early stopping"""
+    # )
+    # parser.add_argument(
+    #     "--patience", type=int, default=3,
+    #     help="Early stopping patience"
+    # )
+    # parser.add_argument(
+    #     "--resume_from_ckpt", type=str, default=None,
+    #     help="Path to a model checkpoint from which to restore training state"
+    # )
+    # parser.add_argument(
+    #     "--resume_model_weights_only", type=bool_type, default=False,
+    #     help="Whether to load just model weights as opposed to training state"
+    # )
+    # parser.add_argument(
+    #     "--resume_from_jax_params", type=str, default=None,
+    #     help="""Path to an .npz JAX parameter file with which to initialize the model"""
+    # )
+    # parser.add_argument(
+    #     "--log_performance", type=bool_type, default=False,
+    #     help="Measure performance"
+    # )
+    # parser.add_argument(
+    #     "--wandb", action="store_true", default=False,
+    #     help="Whether to log metrics to Weights & Biases"
+    # )
+    # parser.add_argument(
+    #     "--experiment_name", type=str, default=None,
+    #     help="Name of the current experiment. Used for wandb logging"
+    # )
+    # parser.add_argument(
+    #     "--wandb_id", type=str, default=None,
+    #     help="ID of a previous run to be resumed"
+    # )
+    # parser.add_argument(
+    #     "--wandb_project", type=str, default=None,
+    #     help="Name of the wandb project to which this run will belong"
+    # )
+    # parser.add_argument(
+    #     "--wandb_entity", type=str, default=None,
+    #     help="wandb username or team name to which runs are attributed"
+    # )
+    # parser.add_argument(
+    #     "--script_modules", type=bool_type, default=False,
+    #     help="Whether to TorchScript eligible components of them model"
+    # )
+    # parser.add_argument(
+    #     "--train_chain_data_cache_path", type=str, default=None,
+    # )
+    # parser.add_argument(
+    #     "--distillation_chain_data_cache_path", type=str, default=None,
+    # )
+    # parser.add_argument(
+    #     "--train_epoch_len", type=int, default=10000,
+    #     help=(
+    #         "The virtual length of each training epoch. Stochastic filtering "
+    #         "of training data means that training datasets have no "
+    #         "well-defined length. This virtual length affects frequency of "
+    #         "validation & checkpointing (by default, one of each per epoch)."
+    #     )
+    # )
+    # parser.add_argument(
+    #     "--log_lr", action="store_true", default=False,
+    #     help="Whether to log the actual learning rate"
+    # )
+
+    # here
     parser.add_argument(
         "--config_preset", type=str, default="initial_training",
         help=(
@@ -648,66 +653,66 @@ if __name__ == "__main__":
             'used.'
         )
     )
-    parser.add_argument(
-        "--_distillation_structure_index_path", type=str, default=None,
-    )
-    parser.add_argument(
-        "--alignment_index_path", type=str, default=None,
-        help="Training alignment index. See the README for instructions."
-    )
-    parser.add_argument(
-        "--distillation_alignment_index_path", type=str, default=None,
-        help="Distillation alignment index. See the README for instructions."
-    )
-    parser.add_argument(
-        "--experiment_config_json", default="", help="Path to a json file with custom config values to overwrite config setting",
-    )
-    parser.add_argument(
-        "--gpus", type=int, default=1, help='For determining optimal strategy and effective batch size.'
-    )
-    parser.add_argument("--mpi_plugin", action="store_true", default=False,
-                        help="Whether to use MPI for parallele processing")
+    # parser.add_argument(
+    #     "--_distillation_structure_index_path", type=str, default=None,
+    # )
+    # parser.add_argument(
+    #     "--alignment_index_path", type=str, default=None,
+    #     help="Training alignment index. See the README for instructions."
+    # )
+    # parser.add_argument(
+    #     "--distillation_alignment_index_path", type=str, default=None,
+    #     help="Distillation alignment index. See the README for instructions."
+    # )
+    # parser.add_argument(
+    #     "--experiment_config_json", default="", help="Path to a json file with custom config values to overwrite config setting",
+    # )
+    # parser.add_argument(
+    #     "--gpus", type=int, default=1, help='For determining optimal strategy and effective batch size.'
+    # )
+    # parser.add_argument("--mpi_plugin", action="store_true", default=False,
+    #                     help="Whether to use MPI for parallele processing")
 
-    trainer_group = parser.add_argument_group(
-        'Arguments to pass to PyTorch Lightning Trainer')
-    trainer_group.add_argument(
-        "--num_nodes", type=int, default=1,
-    )
-    trainer_group.add_argument(
-        "--precision", type=str, default='bf16',
-        help='Sets precision, lower precision improves runtime performance.',
-    )
-    trainer_group.add_argument(
-        "--max_epochs", type=int, default=1,
-    )
-    trainer_group.add_argument(
-        "--log_every_n_steps", type=int, default=25,
-    )
-    trainer_group.add_argument(
-        "--flush_logs_every_n_steps", type=int, default=5,
-    )
-    trainer_group.add_argument(
-        "--num_sanity_val_steps", type=int, default=0,
-    )
-    trainer_group.add_argument(
-        "--reload_dataloaders_every_n_epochs", type=int, default=1,
-    )
-    trainer_group.add_argument(
-        "--accumulate_grad_batches", type=int, default=1,
-        help="Accumulate gradients over k batches before next optimizer step.")
+    # trainer_group = parser.add_argument_group(
+    #     'Arguments to pass to PyTorch Lightning Trainer')
+    # trainer_group.add_argument(
+    #     "--num_nodes", type=int, default=1,
+    # )
+    # trainer_group.add_argument(
+    #     "--precision", type=str, default='bf16',
+    #     help='Sets precision, lower precision improves runtime performance.',
+    # )
+    # trainer_group.add_argument(
+    #     "--max_epochs", type=int, default=1,
+    # )
+    # trainer_group.add_argument(
+    #     "--log_every_n_steps", type=int, default=25,
+    # )
+    # trainer_group.add_argument(
+    #     "--flush_logs_every_n_steps", type=int, default=5,
+    # )
+    # trainer_group.add_argument(
+    #     "--num_sanity_val_steps", type=int, default=0,
+    # )
+    # trainer_group.add_argument(
+    #     "--reload_dataloaders_every_n_epochs", type=int, default=1,
+    # )
+    # trainer_group.add_argument(
+    #     "--accumulate_grad_batches", type=int, default=1,
+    #     help="Accumulate gradients over k batches before next optimizer step.")
 
     args = parser.parse_args()
 
-    if (args.seed is None and
-        ((args.gpus is not None and args.gpus > 1) or
-         (args.num_nodes is not None and args.num_nodes > 1))):
-        raise ValueError("For distributed training, --seed must be specified")
+    # if (args.seed is None and
+    #     ((args.gpus is not None and args.gpus > 1) or
+    #      (args.num_nodes is not None and args.num_nodes > 1))):
+    #     raise ValueError("For distributed training, --seed must be specified")
 
-    if (str(args.precision) == "16" and args.deepspeed_config_path is not None):
-        raise ValueError("DeepSpeed and FP16 training are not compatible")
+    # if (str(args.precision) == "16" and args.deepspeed_config_path is not None):
+    #     raise ValueError("DeepSpeed and FP16 training are not compatible")
 
-    if (args.resume_from_jax_params is not None and args.resume_from_ckpt is not None):
-        raise ValueError(
-            "Choose between loading pretrained Jax-weights and a checkpoint-path")
+    # if (args.resume_from_jax_params is not None and args.resume_from_ckpt is not None):
+    #     raise ValueError(
+    #         "Choose between loading pretrained Jax-weights and a checkpoint-path")
 
     main(args)
