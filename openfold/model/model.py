@@ -80,7 +80,7 @@ class AlphaFold(nn.Module):
         self.globals = config.globals
         self.config = config.model
         self.template_config = self.config.template
-        self.extra_msa_config = self.config.extra_msa
+        # self.extra_msa_config = self.config.extra_msa
         self.seqemb_mode = config.globals.seqemb_mode_enabled
 
         # Main trunk + structure module

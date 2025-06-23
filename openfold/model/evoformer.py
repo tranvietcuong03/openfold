@@ -37,8 +37,8 @@ from openfold.model.triangular_attention import (
 from openfold.model.triangular_multiplicative_update import (
     TriangleMultiplicationOutgoing,
     TriangleMultiplicationIncoming,
-    FusedTriangleMultiplicationIncoming,
-    FusedTriangleMultiplicationOutgoing
+    # FusedTriangleMultiplicationIncoming,
+    # FusedTriangleMultiplicationOutgoing
 )
 from openfold.utils.checkpointing import checkpoint_blocks, get_checkpoint_fn
 from openfold.utils.chunk_utils import chunk_layer, ChunkSizeTuner
@@ -135,24 +135,24 @@ class PairStack(nn.Module):
     ):
         super(PairStack, self).__init__()
 
-        if fuse_projection_weights:
-            self.tri_mul_out = FusedTriangleMultiplicationOutgoing(
-                c_z,
-                c_hidden_mul,
-            )
-            self.tri_mul_in = FusedTriangleMultiplicationIncoming(
-                c_z,
-                c_hidden_mul,
-            )
-        else:
-            self.tri_mul_out = TriangleMultiplicationOutgoing(
-                c_z,
-                c_hidden_mul,
-            )
-            self.tri_mul_in = TriangleMultiplicationIncoming(
-                c_z,
-                c_hidden_mul,
-            )
+        # if fuse_projection_weights:
+        #     self.tri_mul_out = FusedTriangleMultiplicationOutgoing(
+        #         c_z,
+        #         c_hidden_mul,
+        #     )
+        #     self.tri_mul_in = FusedTriangleMultiplicationIncoming(
+        #         c_z,
+        #         c_hidden_mul,
+        #     )
+        # else:
+        self.tri_mul_out = TriangleMultiplicationOutgoing(
+            c_z,
+            c_hidden_mul,
+        )
+        self.tri_mul_in = TriangleMultiplicationIncoming(
+            c_z,
+            c_hidden_mul,
+        )
 
         self.tri_att_start = TriangleAttention(
             c_z,
