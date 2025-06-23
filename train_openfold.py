@@ -51,12 +51,12 @@ class OpenFoldWrapper(pl.LightningModule):
 
         self.loss = AlphaFoldLoss(config.loss)
 
-        self.ema = ExponentialMovingAverage(
-            model=self.model, decay=config.ema.decay
-        )
+        # self.ema = ExponentialMovingAverage(
+        #     model=self.model, decay=config.ema.decay
+        # )
 
-        self.cached_weights = None
-        self.last_lr_step = -1
+        # self.cached_weights = None
+        # self.last_lr_step = -1
         self.save_hyperparameters()
 
     def forward(self, batch):
@@ -91,16 +91,15 @@ class OpenFoldWrapper(pl.LightningModule):
         #         f"{phase}/{k}",
         #         torch.mean(v),
         #         prog_bar = (k == 'loss'),
-        #         on_step=False, on_epoch=True, logger=
-        # , sync_dist=False,
+        #         on_step=False, on_epoch=True, logger=True, sync_dist=False,
         #     )
 
     def training_step(self, batch, batch_idx):
-        if (self.ema.device != batch["aatype"].device):
-            self.ema.to(batch["aatype"].device)
+        # if (self.ema.device != batch["aatype"].device):
+        #     self.ema.to(batch["aatype"].device)
 
         # ground_truth = batch.pop('gt_features', None)
-
+        batch.pop('gt_features', None)
         # Run the model
         outputs = self(batch)
 
@@ -122,22 +121,22 @@ class OpenFoldWrapper(pl.LightningModule):
 
         return loss
 
-    def on_before_zero_grad(self, *args, **kwargs):
-        self.ema.update(self.model)
+    # def on_before_zero_grad(self, *args, **kwargs):
+    #     self.ema.update(self.model)
 
     def validation_step(self, batch, batch_idx):
         # At the start of validation, load the EMA weights
-        if (self.cached_weights is None):
-            # model.state_dict() contains references to model weights rather
-            # than copies. Therefore, we need to clone them before calling
-            # load_state_dict().
-            def clone_param(t): return t.detach().clone()
-            self.cached_weights = tensor_tree_map(
-                clone_param, self.model.state_dict())
-            self.model.load_state_dict(self.ema.state_dict()["params"])
+        # if (self.cached_weights is None):
+        #     # model.state_dict() contains references to model weights rather
+        #     # than copies. Therefore, we need to clone them before calling
+        #     # load_state_dict().
+        #     def clone_param(t): return t.detach().clone()
+        #     self.cached_weights = tensor_tree_map(
+        #         clone_param, self.model.state_dict())
+        #     self.model.load_state_dict(self.ema.state_dict()["params"])
 
         # ground_truth = batch.pop('gt_features', None)
-
+        batch.pop('gt_features', None)
         # Run the model
         outputs = self(batch)
         batch = tensor_tree_map(lambda t: t[..., -1], batch)
