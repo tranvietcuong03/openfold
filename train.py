@@ -112,7 +112,6 @@ def main(args):
         datamodule=data_module,
     )
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
