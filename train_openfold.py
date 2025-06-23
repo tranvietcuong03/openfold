@@ -297,11 +297,11 @@ def main(args):
     # is_low_precision = args.precision in [
     #     "bf16-mixed", "16", "bf16", "16-true", "16-mixed", "bf16-mixed"]
 
-    config = model_config()
-    #     "initial_training", 
-    #     train=True, 
-    #     low_prec=True,
-    # ) 
+    config = model_config(
+        "initial_training", 
+        train=True, 
+        low_prec=True,
+    ) 
     # if args.experiment_config_json: 
     #     with open(args.experiment_config_json, 'r') as f:
     #         custom_config_dict = json.load(f)
