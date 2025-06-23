@@ -91,12 +91,13 @@ class OpenFoldWrapper(pl.LightningModule):
         #         f"{phase}/{k}",
         #         torch.mean(v),
         #         prog_bar = (k == 'loss'),
-        #         on_step=False, on_epoch=True, logger=True, sync_dist=False,
+        #         on_step=False, on_epoch=True, logger=
+        # , sync_dist=False,
         #     )
 
     def training_step(self, batch, batch_idx):
-        if (self.ema.device != batch["aatype"].device):
-            self.ema.to(batch["aatype"].device)
+        # if (self.ema.device != batch["aatype"].device):
+        #     self.ema.to(batch["aatype"].device)
 
         # ground_truth = batch.pop('gt_features', None)
 
@@ -133,7 +134,7 @@ class OpenFoldWrapper(pl.LightningModule):
         #     def clone_param(t): return t.detach().clone()
         #     self.cached_weights = tensor_tree_map(
         #         clone_param, self.model.state_dict())
-        self.model.load_state_dict(self.ema.state_dict()["params"])
+        # self.model.load_state_dict(self.ema.state_dict()["params"])
 
         # ground_truth = batch.pop('gt_features', None)
 
