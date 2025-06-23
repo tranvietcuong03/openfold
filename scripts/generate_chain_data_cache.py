@@ -11,8 +11,8 @@ sys.path.append(".") # an innocent hack to get this to run from the top level
 from collections import defaultdict
 from tqdm import tqdm
 
-from openfold.data.mmcif_parsing import parse 
-from openfold.np import protein, residue_constants
+from vinafold.data.mmcif_parsing import parse 
+from vinafold.np import protein, residue_constants
 
 
 def parse_file(

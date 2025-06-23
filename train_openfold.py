@@ -19,35 +19,35 @@ import torch
 # import wandb
 # from deepspeed.utils import zero_to_fp32 
 
-from openfold.config import model_config
-from openfold.data.data_modules import OpenFoldDataModule #, OpenFoldMultimerDataModule
-from openfold.model.model import AlphaFold
-# from openfold.model.torchscript import script_preset_
-# from openfold.np import residue_constants
-# from openfold.utils.callbacks import (
+from vinafold.config import model_config
+from vinafold.data.data_modules import VinaFoldDataModule #, VinaFoldMultimerDataModule
+from vinafold.model.model import AlphaFold
+# from VinaFold.model.torchscript import script_preset_
+# from VinaFold.np import residue_constants
+# from VinaFold.utils.callbacks import (
 #     EarlyStoppingVerbose,
 # )
-# from openfold.utils.exponential_moving_average import ExponentialMovingAverage
-from openfold.utils.loss import AlphaFoldLoss #, lddt_ca
-# from openfold.utils.lr_schedulers import AlphaFoldLRScheduler
-# from openfold.utils.multi_chain_permutation import multi_chain_permutation_align
-# from openfold.utils.superimposition import superimpose
-from openfold.utils.tensor_utils import tensor_tree_map
-# from openfold.utils.validation_metrics import (
+# from VinaFold.utils.exponential_moving_average import ExponentialMovingAverage
+from vinafold.utils.loss import AlphaFoldLoss #, lddt_ca
+# from VinaFold.utils.lr_schedulers import AlphaFoldLRScheduler
+# from VinaFold.utils.multi_chain_permutation import multi_chain_permutation_align
+# from VinaFold.utils.superimposition import superimpose
+from vinafold.utils.tensor_utils import tensor_tree_map
+# from VinaFold.utils.validation_metrics import (
 #     drmsd,
 #     gdt_ts,
 #     gdt_ha,
 # )
-# from openfold.utils.import_weights import (
+# from VinaFold.utils.import_weights import (
 #     import_jax_weights_,
-#     import_openfold_weights_
+#     import_VinaFold_weights_
 # )
-# from openfold.utils.logger import PerformanceLoggingCallback
+# from VinaFold.utils.logger import PerformanceLoggingCallback
 
 
-class OpenFoldWrapper(pl.LightningModule):
+class VinaFoldWrapper(pl.LightningModule):
     def __init__(self, config):
-        super(OpenFoldWrapper, self).__init__()
+        super(VinaFoldWrapper, self).__init__()
         self.config = config
         self.model = AlphaFold(config)
         # self.is_multimer = self.config.globals.is_multimer
@@ -307,7 +307,7 @@ def main(args):
     #         custom_config_dict = json.load(f)
     #     config.update_from_flattened_dict(custom_config_dict)
 
-    model_module = OpenFoldWrapper(config)
+    model_module = VinaFoldWrapper(config)
 
     # if args.resume_from_ckpt:
     #     if args.resume_model_weights_only:
@@ -320,14 +320,14 @@ def main(args):
     #         # Process the state dict
     #         if 'module' in sd:
     #             sd = {k[len('module.'):]: v for k, v in sd['module'].items()}
-    #             import_openfold_weights_(model=model_module, state_dict=sd)
+    #             import_VinaFold_weights_(model=model_module, state_dict=sd)
     #         elif 'state_dict' in sd:
-    #             import_openfold_weights_(
+    #             import_VinaFold_weights_(
     #                 model=model_module, state_dict=sd['state_dict'])
     #         else:
     #             # Loading from pre-trained model
     #             sd = {'model.'+k: v for k, v in sd.items()}
-    #             import_openfold_weights_(model=model_module, state_dict=sd)
+    #             import_VinaFold_weights_(model=model_module, state_dict=sd)
     #         logging.info("Successfully loaded model weights...")
 
     #     else:  # Loads a checkpoint to start from a specific time step
@@ -349,13 +349,13 @@ def main(args):
     #     script_preset_(model_module)
 
     # if "multimer" in args.config_preset:
-    #     data_module = OpenFoldMultimerDataModule(
+    #     data_module = VinaFoldMultimerDataModule(
     #         config=config.data,
     #         batch_seed=args.seed,
     #         **vars(args)
     #     )
     # else:
-    data_module = OpenFoldDataModule(
+    data_module = VinaFoldDataModule(
         config=config.data,
         batch_seed=args.seed,
         train_data_dir=args.train_data_dir,
@@ -431,7 +431,7 @@ def main(args):
     #     )
     #     if(args.wandb and is_rank_zero):
     #         wdb_logger.experiment.save(args.deepspeed_config_path)
-    #         wdb_logger.experiment.save("openfold/config.py")
+    #         wdb_logger.experiment.save("VinaFold/config.py")
     if (args.gpus is not None and args.gpus > 1) or args.num_nodes > 1:
         strategy = DDPStrategy(find_unused_parameters=False) #, cluster_environment=cluster_environment)
     else:

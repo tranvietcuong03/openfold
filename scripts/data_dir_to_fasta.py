@@ -3,8 +3,8 @@ import logging
 import os
 import string
 from collections import defaultdict
-from openfold.data import mmcif_parsing
-from openfold.np import protein, residue_constants
+from vinafold.data import mmcif_parsing
+from vinafold.np import protein, residue_constants
 
 
 def main(args):

@@ -19,16 +19,16 @@ import argparse
 import numpy as np
 import torch
 
-from openfold.config import model_config
-from openfold.model.model import AlphaFold
-from openfold.utils.import_weights import (
+from vinafold.config import model_config
+from vinafold.model.model import AlphaFold
+from vinafold.utils.import_weights import (
     Param, 
     ParamType, 
     generate_translation_dict, 
     process_translation_dict,
     import_openfold_weights_
 )
-from openfold.utils.tensor_utils import tree_map
+from vinafold.utils.tensor_utils import tree_map
 
 
 def reshape_fn(of_param, af_weight):

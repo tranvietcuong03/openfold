@@ -6,7 +6,7 @@ import os
 import re
 import requests
 
-from openfold.data import mmcif_parsing
+from vinafold.data import mmcif_parsing
 
 
 VALID_PERIODS = [
