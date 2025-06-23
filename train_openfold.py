@@ -1,45 +1,45 @@
 import argparse
-import logging
-import os
-import sys
-import json
+# import logging
+# import os
+# import sys
+# import json
 
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks.lr_monitor import LearningRateMonitor
-from pytorch_lightning.callbacks import DeviceStatsMonitor
-from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
-from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.strategies import DDPStrategy, DeepSpeedStrategy
+# from pytorch_lightning.callbacks.lr_monitor import LearningRateMonitor
+# from pytorch_lightning.callbacks import DeviceStatsMonitor
+# from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+# from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.strategies import DDPStrategy #, DeepSpeedStrategy
 from pytorch_lightning.plugins.environments import MPIEnvironment
 from pytorch_lightning import seed_everything
 import torch
-import wandb
-from deepspeed.utils import zero_to_fp32 
+# import wandb
+# from deepspeed.utils import zero_to_fp32 
 
 from openfold.config import model_config
 from openfold.data.data_modules import OpenFoldDataModule #, OpenFoldMultimerDataModule
 from openfold.model.model import AlphaFold
 from openfold.model.torchscript import script_preset_
-from openfold.np import residue_constants
-from openfold.utils.callbacks import (
-    EarlyStoppingVerbose,
-)
-from openfold.utils.exponential_moving_average import ExponentialMovingAverage
-from openfold.utils.loss import AlphaFoldLoss, lddt_ca
-from openfold.utils.lr_schedulers import AlphaFoldLRScheduler
-from openfold.utils.multi_chain_permutation import multi_chain_permutation_align
-from openfold.utils.superimposition import superimpose
+# from openfold.np import residue_constants
+# from openfold.utils.callbacks import (
+#     EarlyStoppingVerbose,
+# )
+# from openfold.utils.exponential_moving_average import ExponentialMovingAverage
+from openfold.utils.loss import AlphaFoldLoss #, lddt_ca
+# from openfold.utils.lr_schedulers import AlphaFoldLRScheduler
+# from openfold.utils.multi_chain_permutation import multi_chain_permutation_align
+# from openfold.utils.superimposition import superimpose
 from openfold.utils.tensor_utils import tensor_tree_map
-from openfold.utils.validation_metrics import (
-    drmsd,
-    gdt_ts,
-    gdt_ha,
-)
-from openfold.utils.import_weights import (
-    import_jax_weights_,
-    import_openfold_weights_
-)
-from openfold.utils.logger import PerformanceLoggingCallback
+# from openfold.utils.validation_metrics import (
+#     drmsd,
+#     gdt_ts,
+#     gdt_ha,
+# )
+# from openfold.utils.import_weights import (
+#     import_jax_weights_,
+#     import_openfold_weights_
+# )
+# from openfold.utils.logger import PerformanceLoggingCallback
 
 
 class OpenFoldWrapper(pl.LightningModule):
@@ -62,7 +62,7 @@ class OpenFoldWrapper(pl.LightningModule):
     def forward(self, batch):
         return self.model(batch)
 
-    def _log(self, loss_breakdown, batch, outputs, train=True):
+    def _log(self, loss_breakdown, train=True): #, batch, outputs, train=True):
         phase = "train" if train else "val"
         for loss_name, indiv_loss in loss_breakdown.items():
             self.log(
@@ -117,7 +117,7 @@ class OpenFoldWrapper(pl.LightningModule):
         )
 
         # Log it
-        self._log(loss_breakdown, batch, outputs)
+        self._log(loss_breakdown) #, batch, outputs)
 
         return loss
 
@@ -153,7 +153,7 @@ class OpenFoldWrapper(pl.LightningModule):
             outputs, batch, _return_breakdown=True
         )
 
-        self._log(loss_breakdown, batch, outputs, train=False)
+        self._log(loss_breakdown) #, batch, outputs, train=False)
         
     # def on_validation_epoch_end(self):
     #     # Restore the model weights to normal
@@ -430,8 +430,7 @@ def main(args):
     #         wdb_logger.experiment.save(args.deepspeed_config_path)
     #         wdb_logger.experiment.save("openfold/config.py")
     if (args.gpus is not None and args.gpus > 1) or args.num_nodes > 1:
-        strategy = DDPStrategy(find_unused_parameters=False,
-                               cluster_environment=cluster_environment)
+        strategy = DDPStrategy(find_unused_parameters=False, cluster_environment=cluster_environment)
     else:
         strategy = "auto"
  
