@@ -9,7 +9,7 @@ mkdir -p tests/test_data/alphafold/common
 ln -rs openfold/resources/stereo_chemical_props.txt tests/test_data/alphafold/common
 
 # Decompress test data
-gunzip -c tests/test_data/sample_feats.pickle.gz > tests/test_data/sample_feats.pickle
+# gunzip -c tests/test_data/sample_feats.pickle.gz > tests/test_data/sample_feats.pickle
 
 python setup.py install
 
