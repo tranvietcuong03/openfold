@@ -11,11 +11,5 @@ Features (without the recycling dimension):
 - "msa_feat" ([*, N_seq, N_res, C_msa]): MSA features, constructed as in the supplement. C_msa is config.model.input_embedder.msa_dim.
 - "seq_mask" ([*, N_res]): 1-D sequence mask
 - "msa_mask" ([*, N_seq, N_res]): MSA mask
-- "pair_mask" ([*, N_res, N_res]): 2-D pair mask
-- "extra_msa_mask" ([*, N_extra, N_res]): Extra MSA mask
-- "template_mask" ([*, N_templ]): Template mask (on the level of templates, not residues)
-- "template_aatype" ([*, N_templ, N_res]): Tensor of template residue indices (indices greater than 19 are clamped to 20 (Unknown))
-- "template_all_atom_positions" ([*, N_templ, N_res, 37, 3]): Template atom coordinates in atom37 format
-- "template_all_atom_mask" ([*, N_templ, N_res, 37]): Template atom coordinate mask
-- "template_pseudo_beta" ([*, N_templ, N_res, 3]): Positions of template carbon ("pseudo-beta") atoms (i.e. C_beta for all residues but glycine, for for which C_alpha is used instead)
-- "template_pseudo_beta_mask" ([*, N_templ, N_res]): Pseudo-beta mask
+
+dict_keys(['aatype', 'residue_index', 'seq_length', 'all_atom_positions', 'all_atom_mask', 'resolution', 'is_distillation', 'seq_mask', 'msa_mask', 'msa_row_mask', 'atom14_atom_exists', 'residx_atom14_to_atom37', 'residx_atom37_to_atom14', 'atom37_atom_exists', 'atom14_gt_exists', 'atom14_gt_positions', 'atom14_alt_gt_positions', 'atom14_alt_gt_exists', 'atom14_atom_is_ambiguous', 'rigidgroups_gt_frames', 'rigidgroups_gt_exists', 'rigidgroups_group_exists', 'rigidgroups_group_is_ambiguous', 'rigidgroups_alt_gt_frames', 'pseudo_beta', 'pseudo_beta_mask', 'backbone_rigid_tensor', 'backbone_rigid_mask', 'chi_angles_sin_cos', 'chi_mask', 'extra_msa', 'extra_msa_mask', 'extra_msa_row_mask', 'bert_mask', 'true_msa', 'extra_has_deletion', 'extra_deletion_value', 'msa_feat', 'target_feat', 'use_clamped_fape', 'batch_idx', 'no_recycling_iters'])
