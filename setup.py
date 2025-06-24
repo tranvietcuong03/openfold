@@ -1,19 +1,5 @@
-# Copyright 2021 AlQuraishi Laboratory
-# Copyright 2021 DeepMind Technologies Limited
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 import os
-from setuptools import setup, Extension, find_packages
+from setuptools import setup, find_packages
 import subprocess
 
 import torch
@@ -81,13 +67,13 @@ if bare_metal_major != -1:
     modules = [CUDAExtension(
         name="attn_core_inplace_cuda",
         sources=[
-            "openfold/utils/kernel/csrc/softmax_cuda.cpp",
-            "openfold/utils/kernel/csrc/softmax_cuda_kernel.cu",
+            "vinafold/utils/kernel/csrc/softmax_cuda.cpp",
+            "vinafold/utils/kernel/csrc/softmax_cuda_kernel.cu",
         ],
         include_dirs=[
             os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
-                'openfold/utils/kernel/csrc/'
+                'vinafold/utils/kernel/csrc/'
             )
         ],
         extra_compile_args={
@@ -103,8 +89,8 @@ else:
     modules = [CppExtension(
         name="attn_core_inplace_cuda",
         sources=[
-            "openfold/utils/kernel/csrc/softmax_cuda.cpp",
-            "openfold/utils/kernel/csrc/softmax_cuda_stub.cpp",
+            "vinafold/utils/kernel/csrc/softmax_cuda.cpp",
+            "vinafold/utils/kernel/csrc/softmax_cuda_stub.cpp",
         ],
         extra_compile_args={
             'cxx': ['-O3'],
@@ -112,19 +98,16 @@ else:
     )]
 
 setup(
-    name='openfold',
+    name='vinafold',
     version='2.2.0',
-    description='A PyTorch reimplementation of DeepMind\'s AlphaFold 2',
-    author='OpenFold Team',
-    author_email='jennifer.wei@omsf.io',
-    license='Apache License, Version 2.0',
-    url='https://github.com/aqlaboratory/openfold',
+
     packages=find_packages(exclude=["tests", "scripts"]),
     include_package_data=True,
     package_data={
-        "openfold": ['utils/kernel/csrc/*'],
+        "vinafold": ['utils/kernel/csrc/*'],
         "": ["resources/stereo_chemical_props.txt"]
     },
+
     ext_modules=modules,
     cmdclass={'build_ext': BuildExtension},
     classifiers=[
